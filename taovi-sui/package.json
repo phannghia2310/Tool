@@ -1,8 +1,0 @@
-{
-    "name": "sui-wallet-generator",
-    "version": "1.0.0",
-    "type": "module",
-    "dependencies": {
-      "@mysten/sui.js": "latest"
-    }
-  }
