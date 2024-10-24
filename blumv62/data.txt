@@ -1,0 +1,1 @@
+query_id=AAGubWANAwAAAK5tYA22fJja&user=%7B%22id%22%3A6666874286%2C%22first_name%22%3A%22Tuan%F0%9F%8D%85%F0%9F%90%A4%20Gra-Gra%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22congtuan2608%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1725857695&hash=e2dea0c2ff21b9796f8faf15eee971419f863cfaa79391a546b09641d2df82ab
