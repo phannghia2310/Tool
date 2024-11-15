@@ -1,0 +1,31 @@
+Hướng dẫn sử dụng script auto ghép mèo trong catizen nhé anh em!
+
+Đầu tiên là phải có nút auto trong game đã
+
+Sau đó bấm f12, bấm vào cái mục giống tôi rồi tìm đoạn code sau
+
+leaguechange 
+
+Bấm reload lại nó đơ như này là ok, copy đoạn code dưới dán vào console
+
+try {
+    function onClickAuto() {
+        P.cat.isAuto = !P.cat.isAuto,
+        P.cat.isAuto ? (this.ani8.play(0, !0),
+        Laya.timer.loop(500, this, this.checkAuto),
+        this.checkFreeCat(),
+        this.m_btn_AutoSetting.visible = !0) : (Laya.timer.clearAll(this.checkAuto),
+        this.ani8.stop(),
+        Laya.timer.loop(5e3, this, this.checkSum),
+        this.m_btn_AutoSetting.visible = !1),
+        this.m_img_StopAuto.visible = !P.cat.isAuto
+        u(`AutoBot ${P.cat.isAuto ? 'deactivated' : 'activated'}!\n\nDan Cay Airdrop`)
+    }
+    
+    N.prototype.onClickAuto = onClickAuto
+
+} catch (e) {
+    console.log(`Lỗi rồi!`);
+}
+
+Done

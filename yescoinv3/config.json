@@ -1,0 +1,7 @@
+{
+    "TaskEnable": true,
+    "upgradeMultiEnable": true,
+    "upgradeFillEnable": true,
+    "maxLevel": 15,
+    "maxThreads": 10
+  }
