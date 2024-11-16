@@ -104,7 +104,7 @@ class Banana:
             return hex_str
         
         wA = "https://interface.carv.io"
-        xA = "JVQXFtvBnIMTMB9t"
+        xA = "EWbnkc7qHBtenQee"
         
         result = encrypt(str(e), xA)
         return result
@@ -425,28 +425,33 @@ class Banana:
                 self.log(self.line)
                 self.log(f"{green}Tài khoản: {white}{no+1}/{num_acc}")
 
-                get_token = self.get_token(data=data).json()
-                # Get token
                 try:
+                    get_token = self.get_token(data=data).json()
+                    if 'data' not in get_token or 'token' not in get_token['data']:
+                        self.log(f"{red}Lỗi: Không thể lấy token - Response không hợp lệ")
+                        continue
+                        
                     token = get_token["data"]["token"]
 
-                    # Get user info
                     get_user_info = self.user_info(token=token).json()
-                    banana = get_user_info["data"]["banana_count"]
-                    peel = get_user_info["data"]["peel"]
-                    usdt = get_user_info["data"]["usdt"]
-                    speedup = get_user_info["data"]["speedup_count"]
-                    tg_id = get_user_info["data"]["user_id"] 
-                    equip_banana_name = get_user_info["data"]["equip_banana"]["name"]
-                    equip_banana_peel_limit = get_user_info["data"]["equip_banana"][
-                        "daily_peel_limit"
-                    ]
-                    equip_banana_peel_price = get_user_info["data"]["equip_banana"][
-                        "sell_exchange_peel"
-                    ]
-                    equip_banana_usdt_price = get_user_info["data"]["equip_banana"][
-                        "sell_exchange_usdt"
-                    ]
+                    if 'data' not in get_user_info:
+                        self.log(f"{red}Lỗi: Không thể lấy thông tin user - Response không hợp lệ")
+                        self.log(f"{red}Response nhận được: {get_user_info}")
+                        continue
+
+                    user_data = get_user_info["data"]
+                    banana = user_data.get("banana_count", 0)
+                    peel = user_data.get("peel", 0)
+                    usdt = user_data.get("usdt", 0)
+                    speedup = user_data.get("speedup_count", 0)
+                    tg_id = user_data.get("user_id", "Unknown")
+                    
+                    equip_banana = user_data.get("equip_banana", {})
+                    equip_banana_name = equip_banana.get("name", "Unknown")
+                    equip_banana_peel_limit = equip_banana.get("daily_peel_limit", 0)
+                    equip_banana_peel_price = equip_banana.get("sell_exchange_peel", 0)
+                    equip_banana_usdt_price = equip_banana.get("sell_exchange_usdt", 0)
+
                     self.log(
                         f"{green}Banana: {white}{banana} - {green}Peels: {white}{peel} - {green}USDT: {white}{usdt} - {green}SPEEDUP: {white}{speedup}"
                     )

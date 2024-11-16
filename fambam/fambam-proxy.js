@@ -92,7 +92,13 @@ class Fambam {
     }
   }
 
-  async loginWithTelegramMiniApp(userId, firstName, lastName, userName, axiosInstance) {
+  async loginWithTelegramMiniApp(
+    userId,
+    firstName,
+    lastName,
+    userName,
+    axiosInstance
+  ) {
     const url =
       "https://pioneer-api.bit.country/authentication/loginWithTelegramMiniApp";
     const payload = {
@@ -138,8 +144,10 @@ class Fambam {
       if (response.status == 200) {
         const { totalPointsCollected, totalPointBurnt } = response.data.data;
 
-        this.log(`Your seeds: ${totalPointsCollected}`);
-        this.log(`Total burnt: ${totalPointBurnt}`);
+        return {
+          success: true,
+          data: { totalPointsCollected, totalPointBurnt },
+        };
       } else {
         return { success: false, error: "Failed to get me ifo" };
       }
@@ -247,7 +255,7 @@ class Fambam {
     }
   }
 
-  async handleOpenBox(metaverseId, token, axiosInstance) {
+  async handleOpenBox(metaverseId, token, maxBox, axiosInstance) {
     try {
       const boxInfo = await this.getBoxInfo(metaverseId, token, axiosInstance);
 
@@ -256,13 +264,25 @@ class Fambam {
       }
 
       const { numBlindBox } = boxInfo.data;
+      let boxCanOpen = 0;
+      
+      if (maxBox < numBlindBox) {
+        boxCanOpen = maxBox;
+      } else {
+        boxCanOpen = numBlindBox;
+      }
 
-      this.log(`Tổng box: ${numBlindBox}`);
+      this.log(`Số box có thể mở: ${boxCanOpen}`);
 
       if (numBlindBox <= 0) {
         this.log("You are not have any box, please wait!");
       } else {
-        const open = await this.openBox(metaverseId, token, numBlindBox, axiosInstance);
+        const open = await this.openBox(
+          metaverseId,
+          token,
+          numBlindBox,
+          axiosInstance
+        );
         const data = open.data;
 
         this.log(`Claim point: ${data.pointClaim}`, "success");
@@ -315,14 +335,16 @@ class Fambam {
         }
 
         console.log(
-          `========== Tài khoản ${i + 1} | ${userName.green} | ip: ${proxyIP.yellow} ==========`
+          `========== Tài khoản ${i + 1} | ${userName.green} | ip: ${
+            proxyIP.yellow
+          } ==========`
         );
 
         const loginResult = await this.loginWithTelegramMiniApp(
           userId,
           firstName,
           lastName,
-          userName, 
+          userName,
           axiosInstance
         );
 
@@ -331,9 +353,21 @@ class Fambam {
 
           this.log(`Đăng nhập thành công!`, "success");
 
-          await this.getMe(metaverseId, token, axiosInstance);
-          await this.handleClaimPoint(metaverseId, token, axiosInstance);
-          await this.handleOpenBox(metaverseId, token, axiosInstance);
+          const me = await this.getMe(metaverseId, token, axiosInstance);
+
+          if (me.success) {
+            this.log(`Your seeds: ${me.data.totalPointsCollected}`);
+            this.log(`Total burnt: ${me.data.totalPointBurnt}`);
+            const maxBox = me.data.totalPointsCollected / 100;
+
+            await this.handleClaimPoint(metaverseId, token, axiosInstance);
+            await this.handleOpenBox(metaverseId, token, maxBox, axiosInstance);
+          } else {
+            this.log(
+              `Không thể lấy thông tin người dùng: ${me.error}`,
+              "error"
+            );
+          }
 
           // Đếm ngược 60 giây giữa các tài khoản
           this.log(`Đã chạy xong tài khoản ${i + 1}`);

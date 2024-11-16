@@ -92,9 +92,10 @@ class Fambam {
 
       if (response.status == 200) {
         const { totalPointsCollected, totalPointBurnt } = response.data.data;
-
-        this.log(`Your seeds: ${totalPointsCollected}`);
-        this.log(`Total burnt: ${totalPointBurnt}`);
+        return {
+          success: true,
+          data: { totalPointsCollected, totalPointBurnt },
+        };
       } else {
         return { success: false, error: "Failed to get me ifo" };
       }
@@ -202,7 +203,7 @@ class Fambam {
     }
   }
 
-  async handleOpenBox(metaverseId, token) {
+  async handleOpenBox(metaverseId, token, maxBox) {
     try {
       const boxInfo = await this.getBoxInfo(metaverseId, token);
 
@@ -211,13 +212,20 @@ class Fambam {
       }
 
       const { numBlindBox } = boxInfo.data;
+      let boxCanOpen = 0;
+      
+      if (maxBox < numBlindBox) {
+        boxCanOpen = maxBox;
+      } else {
+        boxCanOpen = numBlindBox;
+      }
 
-      this.log(`Tổng box: ${numBlindBox}`);
+      this.log(`Số box có thể mở: ${boxCanOpen}`);
 
       if (numBlindBox <= 0) {
-        this.log("You are not have any box, please wait!");
+        this.log("Bạn không còn hộp nào, vui lòng chờ!");
       } else {
-        const open = await this.openBox(metaverseId, token, numBlindBox);
+        const open = await this.openBox(metaverseId, token, boxCanOpen);
         const data = open.data;
 
         this.log(`Claim point: ${data.pointClaim}`, "success");
@@ -272,9 +280,25 @@ class Fambam {
 
           this.log(`Đăng nhập thành công!`, "success");
 
-          await this.getMe(metaverseId, token);
-          await this.handleClaimPoint(metaverseId, token);
-          await this.handleOpenBox(metaverseId, token);
+          const me = await this.getMe(metaverseId, token);
+
+          if (me.success) {
+            this.log(`Your seeds: ${me.data.totalPointsCollected}`);
+            this.log(`Total burnt: ${me.data.totalPointBurnt}`);
+            const maxBox = me.data.totalPointsCollected / 100;
+
+            await this.handleClaimPoint(metaverseId, token);
+            await this.handleOpenBox(
+              metaverseId,
+              token,
+              maxBox
+            );
+          } else {
+            this.log(
+              `Không thể lấy thông tin người dùng: ${me.error}`,
+              "error"
+            );
+          }
 
           // Đếm ngược 60 giây giữa các tài khoản
           this.log(`Đã chạy xong tài khoản ${i + 1}`);
