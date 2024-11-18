@@ -4,7 +4,7 @@ const axios = require("axios");
 const colors = require("colors");
 const readline = require("readline");
 
-class NotPixel {
+class MDogs {
   constructor() {
     this.headers = {
       Accept: "*",
@@ -12,8 +12,8 @@ class NotPixel {
       "Accept-Language":
         "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
       "Content-Type": "application/json",
-      Origin: "https://app.notpx.app",
-      Referer: "https://app.notpx.app/",
+      Origin: "https://app.moneydogs-ton.com",
+      Referer: "https://app.moneydogs-ton.com/",
       "Sec-Ch-Ua":
         '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
       "Sec-Ch-Ua-Mobile": "?1",
@@ -55,102 +55,107 @@ class NotPixel {
     this.log("", "info");
   }
 
-  async getMe(rawData) {
-    const url = "https://notpx.app/api/v1/users/me";
-    const headers = {
-      ...this.headers,
-      Authorization: `initData ${rawData}`,
+  async checkSession(rawData) {
+    const url = "https://api.moneydogs-ton.com/sessions";
+    const payload = {
+      encodedMessage: rawData,
+      retentionCode: null,
     };
 
     try {
-      const response = await axios.get(url, { headers });
+      const response = await axios.post(url, payload);
+
       if (response.status == 200) {
-        return { success: true, data: response.data };
+        const { token } = response.data;
+        return { success: true, data: { token } };
       }
-      return { success: false, error: "Không thể lấy thông tin người dùng" };
+      return { success: false, error: "Check session failed" };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  async getStatus(rawData) {
-    const url = "https://notpx.app/api/v1/mining/status";
+  async getDailyCheckin(token) {
+    const url = "https://api.moneydogs-ton.com/daily-check-in";
     const headers = {
       ...this.headers,
-      Authorization: `initData ${rawData}`,
+      "X-Auth-Token": token,
+    };
+
+    try {
+      const response = await axios.post(url, {}, { headers });
+
+      if (response.status == 200) {
+        this.log("Điểm danh hằng ngày thành công!", "success");
+      } else {
+        this.log("Bạn đã điểm danh hôm nay rồi!", "warning");
+      }
+    } catch (error) {
+      this.log(`Lỗi điểm danh: ${error.message}`, "error");
+    }
+  }
+
+  async getTasks(token) {
+    const url = "https://api.moneydogs-ton.com/tasks";
+    const headers = {
+      ...this.headers,
+      "X-Auth-Token": token,
     };
 
     try {
       const response = await axios.get(url, { headers });
+
       if (response.status == 200) {
-        return { success: true, data: response.data };
+        return response.data;
       }
-      return { success: false, error: "Không thể lấy trạng thái tài khoản" };
     } catch (error) {
-      return { success: false, error: error.message };
+      this.log(`Lỗi khi lấy ds nhiệm vụ: ${error.message}`, "error");
+      return null;
     }
   }
 
-  async startPain(rawData, charges) {
-    if (charges == 0) {
-      this.log(`Bạn đã hết điểm tô màu!`);
-      return;
-    }
+  async getFeatureTasks(token) {
+    const url = "https://api.moneydogs-ton.com/tasks?isFeatured=true";
+    const headers = {
+      ...this.headers,
+      "X-Auth-Token": token,
+    };
 
-    let pixelIds = [];
+    try {
+      const response = await axios.get(url, { headers });
 
-    for (let y = 374; y < 394; y++) {
-      for (let x = 823 + 1; x < 853; x++) {
-        const pixelId = parseInt(`${y}${x}`);
-        pixelIds.push(pixelId);
+      if (response.status == 200) {
+        return response.data;
       }
+    } catch (error) {
+      this.log(`Không thể lấy ds nhiệm vụ Feature`, "error");
+      return null;
     }
+  }
 
-    for (let i = 0; i < charges; i++) {
-      const url = "https://notpx.app/api/v1/repaint/start";
-      const payload = {
-        pixelId: pixelIds[i],
-        newColor: "#51E9F4",
-      };
+  async verifyTask(token) {
+    const tasks = await this.getTasks(token);
+    const feattureTasks = await this.getFeatureTasks(token);
+    let allTasks = [...tasks, ...feattureTasks];  
+
+    allTasks.forEach(async (task) => {
+      const id = task.id;
+      const title = task.title;
+      const url = `https://api.moneydogs-ton.com/tasks/${id}/verify`;
       const headers = {
         ...this.headers,
-        Authorization: `initData ${rawData}`,
+        "X-Auth-Token": token,
       };
 
       try {
-        const response = await axios.post(url, payload, { headers });
-        if (response.status == 200) {
-          this.log(
-            `Tô màu thành công lần ${i + 1} | Balance mới: ${
-              response.data.balance
-            }`,
-            "success"
-          );
+        const response = await axios.post(url, {}, { headers });
+        if (response.status == 201) {
+          this.log(`Hoàn thành nhiệm vụ ${title}`, "success");
         }
       } catch (error) {
-        this.log(`Lỗi tô màu: ${error.message}`);
+        this.log(`Không thể hoàn thành nhiệm vụ ${title} | Cần tự làm`, 'error');
       }
-    }
-  }
-
-  async getClaim(rawData) {
-    const url = "https://notpx.app/api/v1/mining/claim";
-    const headers = {
-      ...this.headers,
-      Authorization: `initData ${rawData}`,
-    };
-
-    try {
-      const response = await axios.get(url, { headers });
-
-      if (response.status == 200) {
-        this.log(`Claim thành công: ${response.data.claimed}`, "success");
-      } else {
-        this.log(`Bạn đã claim rồi, vui lòng chờ 3560 giây`);
-      }
-    } catch (error) {
-      this.log(`Lỗi claim: ${error.message}`);
-    }
+    });
   }
 
   async main() {
@@ -173,25 +178,15 @@ class NotPixel {
           `========== Tài khoản ${i + 1} | ${userName.green} ==========`
         );
 
-        const loginResult = await this.getMe(initData);
-
-        if (loginResult.success) {
+        const sessionResult = await this.checkSession(initData);
+        if (sessionResult.success) {
           this.log("Đăng nhập thành công!", "success");
-          this.log(
-            `User: ${loginResult.data.firstName} ${loginResult.data.lastName}`
-          );
+          const token = sessionResult.data.token;
 
-          const status = await this.getStatus(initData);
-          if (status.success) {
-            this.log(`Balance: ${status.data.userBalance}`);
-
-            await this.getClaim(initData);
-            await this.startPain(initData, status.data.charges);
-          } else {
-            this.log(`Không thể lấy trạng thái: ${status.error}`, "error");
-          }
+          await this.getDailyCheckin(token);
+          await this.verifyTask(token);
         } else {
-          this.log(`Đăng nhập thất bại: ${loginResult.error}`, "error");
+          this.log(`Đăng nhập thất bại: ${sessionResult.error}`, "error");
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -202,7 +197,7 @@ class NotPixel {
   }
 }
 
-const client = new NotPixel();
+const client = new MDogs();
 client.main().catch((err) => {
   client.log(err.message, "error");
   process.exit(1);

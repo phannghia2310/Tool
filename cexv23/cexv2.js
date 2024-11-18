@@ -18,7 +18,7 @@ class CexAPI {
             'Sec-Fetch-Site': 'same-site',
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
             'X-Appl-Version': '0.20.2',
-            'X-Request-Userhash': '0093c93335ae6aaf294b0d779fdc03a34c805674f02781d9ae8f684b73d7aef7'
+            'X-Request-Userhash': '2777ecc635f8280dda226beb04a21480bb3ddde819750ce5f2dc0278325f1e41'
         };
     }
 
@@ -302,7 +302,7 @@ class CexAPI {
         };
 
         try {
-            const response = await axios.post(url, payload);
+            const response = await axios.post(url, payload, { headers: this.headers });
             if (response.data.status === "ok" && response.data.convertData.lastPrices) {
                 const lastPrice = response.data.convertData.lastPrices[response.data.convertData.lastPrices.length - 1];
                 return lastPrice;
@@ -332,7 +332,7 @@ class CexAPI {
         };
 
         try {
-            const response = await axios.post(url, payload);
+            const response = await axios.post(url, payload, {headers: this.headers });
             if (response.data.status === "ok") {
                 const newBalanceUSD = response.data.convert.balance_USD;
                 this.log(`Swap Crypto sang USD thành công | Balance USD: ${newBalanceUSD}`, 'success');
