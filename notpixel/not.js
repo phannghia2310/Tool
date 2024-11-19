@@ -197,7 +197,7 @@ class NotPixel {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      await this.countdown(60);
+      await this.countdown(3560);
     }
   }
 }

@@ -66,7 +66,7 @@ class YesCoinBot {
     }
 
     async login(encodedData, proxy) {
-        const url = 'https://api-backend.yescoin.gold/user/login';
+        const url = 'https://bi.yescoin.gold/user/login';
         const formattedPayload = this.formatLoginPayload(encodedData);
         const headers = {
             'accept': 'application/json, text/plain, */*',
