@@ -150,8 +150,8 @@ class Babydoge {
     
         try {
             const res = await this.http(url, headers, null, proxy);
-            if (res && res.data && res.data.channels) {
-                const availableChannels = res.data.channels.filter(channel => channel.is_available && channel.type !== 'telegram');
+            if (res && res.data && res.data.available.channels) {
+                const availableChannels = res.data.available.channels.filter(channel => channel.is_available && channel.type !== 'telegram');
                 return availableChannels;
             } else {
                 this.log('Không có nhiệm vụ nào có sẵn.'.yellow);

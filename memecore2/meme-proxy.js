@@ -95,7 +95,7 @@ class MemesWar {
                 if (!userData.inputReferralCode) {
                     try {
                         await axios.put(
-                            "https://memes-war.memecore.com/api/user/referral/0T7YZL",
+                            "https://memes-war.memecore.com/api/user/referral/OAN62M",
                             {},
                             config
                         );
