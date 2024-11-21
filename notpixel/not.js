@@ -97,14 +97,23 @@ class NotPixel {
       return;
     }
 
-    let pixelIds = [];
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
+    let pixelIds = [];
     for (let y = 374; y < 394; y++) {
       for (let x = 823 + 1; x < 853; x++) {
         const pixelId = parseInt(`${y}${x}`);
         pixelIds.push(pixelId);
       }
     }
+
+    pixelIds = shuffleArray(pixelIds);
 
     for (let i = 0; i < charges; i++) {
       const url = "https://notpx.app/api/v1/repaint/start";

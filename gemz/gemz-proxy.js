@@ -66,7 +66,7 @@ async function sendTapRequests() {
 
         const config1 = {
             method: 'post',
-            url: 'https://gemzcoin.us-east-1.replicant.gc-internal.net/gemzcoin/v4.1.9/loginOrCreate',
+            url: 'https://gemzcoin.us-east-1.replicant.gc-internal.net/gemzcoin/v4.3.5/loginOrCreate',
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
@@ -142,7 +142,7 @@ async function sendTapRequests() {
 
                 const config2 = {
                     method: 'post',
-                    url: 'https://gemzcoin.us-east-1.replicant.gc-internal.net/gemzcoin/v4.1.9/replicate',
+                    url: 'https://gemzcoin.us-east-1.replicant.gc-internal.net/gemzcoin/v4.3.5/replicate',
                     headers: {
                         'Accept': 'application/json, text/plain, */*',
                         'Accept-Encoding': 'gzip, deflate, br, zstd',
