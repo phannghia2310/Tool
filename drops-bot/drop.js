@@ -30,19 +30,19 @@ class DropsBot {
   }
 
   setAuthorization(auth) {
-    this.headers["authorization"] = `Bearer ${auth}`;
+    this.headers["Authorization"] = `Bearer ${auth}`.replace(/[\r\n\t]/g, "");
   }
 
   delAuthorization() {
-    delete this.headers["authorization"];
+    delete this.headers["Authorization"];
   }
 
   setXTgData(data) {
-    this.headers["x-tg-data"] = data.replace(/[\r\n\t]/g, "");
+    this.headers["X-Tg-Data"] = data.replace(/[\r\n\t]/g, "");
   }
 
   delXTgData() {
-    delete this.headers["x-tg-data"];
+    delete this.headers["X-Tg-Data"];
   }
 
   log(msg, type = "info") {
@@ -395,8 +395,6 @@ class DropsBot {
     const url = "https://api.miniapp.dropstab.com/api/order";
     const headers = this.headers;
 
-    this.log(JSON.stringify(payload));
-
     try {
       const response = await this.http(url, payload, headers);
       if (response.status === 200) {
@@ -425,23 +423,15 @@ class DropsBot {
   }
 
   async playOrder(period, data) {
-    const coins = await this.getCoin(data);
-    for (const coin of coins) {
-      this.log(
-        `ID: ${coin.id} | Name: ${coin.name} | Price: ${coin.price}`,
-        "info"
-      );
-    }
-
-    const askCoin = await this.askQuestion("Nhập id coin: ");
-    const askType = await this.askQuestion("Chọn lệnh (long/short): ");
+    const askCoin = 1;
     const coinId = parseInt(askCoin);
-    const short = askType.toLowerCase() === "short";
+    const short = Math.random() > 0.5 ? false : true;
     const payload = {
       coinId: coinId,
       short: short,
       periodId: period.period.id,
     };
+
     const orderResponse = await this.startOrder(payload, data);
     if (orderResponse) {
       this.log("Order thành công!", "success");
@@ -467,38 +457,24 @@ class DropsBot {
             }`,
             "success"
           );
-        } else if ((order.status = "NOT_WIN")) {
-          this.log(`Bạn đã thua periord ${period.period.hours} giờ!`, "error");
-          const order = await this.askQuestion(
-            `Bạn có muốn order lại period ${period.period.hours} giờ không? (y/n): `
+        } else if (order.status === "NOT_WIN") {
+          this.log(
+            `Bạn đã thua periord ${period.period.hours} giờ! Bắt đầu order lại...`,
+            "error"
           );
-          const hoiorder = order.toLowerCase() === "y";
-
-          if (hoiorder) {
-            await this.playOrder(period, data);
-          }
+          await this.playOrder(period, data);
         } else {
           const claimResponse = await this.claimOrder(order.id, data);
-          this.log(`Claim thành công ${claimResponse.totalScore}`, "success");
-
-          const order = await this.askQuestion(
-            `Bạn có muốn order lại period ${period.period.hours} giờ không? (y/n): `
+          this.log(
+            `Claim thành công ${claimResponse.totalScore}! Bắt đầu order lại...`,
+            "success"
           );
-          const hoiorder = order.toLowerCase() === "y";
 
-          if (hoiorder) {
-            await this.playOrder(period, data);
-          }
-        }
-      } else {
-        const order = await this.askQuestion(
-          `Bạn có muốn order period ${period.period.hours} giờ không? (y/n): `
-        );
-        const hoiorder = order.toLowerCase() === "y";
-
-        if (hoiorder) {
           await this.playOrder(period, data);
         }
+      } else {
+        this.log(`Bắt đầu order period ${period.period.hours} giờ!`);
+        await this.playOrder(period, data);
       }
     }
   }
