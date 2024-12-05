@@ -13,8 +13,8 @@ class Boink {
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
             "Content-Type": "application/json",
-            "Origin": "https://boink.astronomica.io",
-            "Referer": "https://boink.astronomica.io/?tgWebAppStartParam=boink376905749",
+            "Origin": "https://boink.boinkers.co",
+            "Referer": "https://boink.boinkers.co/?tgWebAppStartParam=boink6073982382",
             "Sec-Ch-Ua": '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
             "Sec-Ch-Ua-Mobile": "?0",
             "Sec-Ch-Ua-Platform": '"Windows"',
@@ -73,8 +73,8 @@ class Boink {
     }
 
     async loginByTelegram(initDataString, proxy) {
-        const url = "https://boink.astronomica.io/public/users/loginByTelegram?p=android";
-        const payload = { initDataString };
+        const url = "https://boink.boinkers.co/public/users/loginByTelegram?p=android";
+        const payload = { initDataString: initDataString };
         const httpsAgent = proxy ? new HttpsProxyAgent(proxy) : null;
         
         try {

@@ -1,9 +1,20 @@
-https://app.nodepay.ai/register?ref=NvWuWDqCjO2G0JE
+nodepay: https://app.nodepay.ai/register?ref=NvWuWDqCjO2G0JE
 
-https://app.gradient.network/signup?code=MN0MCJ
+gradient: https://app.gradient.network/signup?code=MN0MCJ
 
-https://app.getgrass.io/register/?referralCode=KgzOsjQaJ-fWmFL
+grass: https://app.getgrass.io/register/?referralCode=KgzOsjQaJ-fWmFL
 
-https://r.oasis.ai/a7cc04cf86eca743
+oasis: https://r.oasis.ai/a7cc04cf86eca743
 
-h4or4rr4 https://chromewebstore.google.com/detail/dawn-validator-chrome-ext/fpdkjdnhkakefebpekbdhillbhonfjjp?hl=vi&utm_source=ext_sidebar
+dawn:   h4or4rr4 
+        https://chromewebstore.google.com/detail/dawn-validator-chrome-ext/fpdkjdnhkakefebpekbdhillbhonfjjp?hl=vi&utm_source=ext_sidebar
+
+alphaos: https://alphaos.net/point?invite=LPTYID
+
+teonet: WKOEJ
+        https://chromewebstore.google.com/detail/teneo-community-node/emcclcoaglgcpoognfiggmhnhgabppkm
+
+bless: https://bless.network/dashboard?ref=I4SIMO
+
+openloop:   ol1a3d1d45
+            https://chromewebstore.google.com/detail/openloopso-sentry-node-ex/effapmdildnpkiaeghlkicpfflpiambm
