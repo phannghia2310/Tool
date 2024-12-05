@@ -321,7 +321,9 @@ class XPlusApp {
     };
 
     try {
-      const res = await this.http(url, headers);
+      const res = await axios.get(url, {
+        headers,
+      });
       if (res.status === 200) {
         const data = res.data;
         const tasks = data.tasks;
@@ -329,17 +331,50 @@ class XPlusApp {
 
         for (const task of tasks) {
           if (task.status === 0) {
-            const claimUrl = "https://wonton.food/api/v1/task/claim";
-            const claimPayload = {
+            const verifyUrl = "https://wonton.food/api/v1/task/verify";
+            const payload = {
               taskId: task.id,
             };
 
-            const claimRes = await this.http(
-              claimUrl,
+            const verifyRes = await axios.post(verifyUrl, payload, {
               headers,
-              JSON.stringify(claimPayload),
-              "POST"
-            );
+              validateStatus: false,
+            });
+
+            if (verifyRes.status === 200) {
+              this.log(
+                `Verify thành công ${task.name}, bắt đầu claim...`,
+                "blue"
+              );
+              const claimUrl = "https://wonton.food/api/v1/task/claim";
+              const claimRes = await axios.post(claimUrl, payload, {
+                headers,
+                validateStatus: false,
+              });
+              if (claimRes.status === 200) {
+                this.log(
+                  `Làm nhiệm vụ: ${task.name}...trạng thái: thành công`,
+                  "green"
+                );
+              } else {
+                this.log(
+                  `Không thể hoàn thành nhiệm vụ: ${task.name}. Mã trạng thái: ${claimRes.status}`,
+                  "red"
+                );
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+            }
+          } else if (task.status === 1) {
+            const claimUrl = "https://wonton.food/api/v1/task/claim";
+            const payload = {
+              taskId: task.id,
+            };
+
+            const claimRes = await axios.post(claimUrl, payload, {
+              headers,
+              validateStatus: false,
+            });
             if (claimRes.status === 200) {
               this.log(
                 `Làm nhiệm vụ: ${task.name}...trạng thái: thành công`,
@@ -351,11 +386,8 @@ class XPlusApp {
                 "red"
               );
             }
+            await new Promise((resolve) => setTimeout(resolve, 3000));
           }
-        }
-
-        if (taskProgress >= 3) {
-          await this.getTaskProgress(token);
         }
       } else {
         this.log(
@@ -470,7 +502,7 @@ class XPlusApp {
           this.log("Không có ticket để chơi game!", "yellow");
         }
 
-        //                await this.processTasks(tokens.accessToken);
+        await this.processTasks(tokens.accessToken);
       }
 
       return tokens.refreshToken;

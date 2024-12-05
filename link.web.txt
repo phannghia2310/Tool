@@ -11,7 +11,7 @@ dawn:   h4or4rr4
 
 alphaos: https://alphaos.net/point?invite=LPTYID
 
-teonet: WKOEJ
+teneo: WKOEJ
         https://chromewebstore.google.com/detail/teneo-community-node/emcclcoaglgcpoognfiggmhnhgabppkm
 
 bless: https://bless.network/dashboard?ref=I4SIMO

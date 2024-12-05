@@ -7,12 +7,12 @@ const { HttpsProxyAgent } = require('https-proxy-agent');
 class XPlusApp {
     constructor() {
         this.headers = {
-            'authority': 'wonton.food',
-            'accept': '*/*',
+            authority: 'wonton.food',
+            accept: '*/*',
             'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
             'content-type': 'application/json',
-            'origin': 'https://www.wonton.restaurant',
-            'referer': 'https://www.wonton.restaurant/',
+            origin: 'https://www.wonton.restaurant',
+            referer: 'https://www.wonton.restaurant/',
             'sec-ch-ua': '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
@@ -79,7 +79,7 @@ class XPlusApp {
         const url = 'https://wonton.food/api/v1/checkin';
         const headers = {
             ...this.headers,
-            'Authorization': `bearer ${token}`
+            'Authorization': `bearer ${token}`,
         };
 
         try {
@@ -258,7 +258,7 @@ class XPlusApp {
         }
     }    
     
-    async getTaskProgress(token) {
+    async getTaskProgress(token, proxy) {
         const url = 'https://wonton.food/api/v1/task/claim-progress';
         const headers = {
             ...this.headers,
@@ -266,7 +266,7 @@ class XPlusApp {
         };
     
         try {
-            const res = await this.http(url, headers);
+            const res = await this.http(url, headers, {}, proxy);
             if (res.status === 200) {
                 const data = res.data;
                 const items = data.items;
@@ -287,15 +287,19 @@ class XPlusApp {
         }
     }    
 
-    async processTasks(token) {
+    async processTasks(token, proxy) {
         const url = 'https://wonton.food/api/v1/task/list';
         const headers = {
             ...this.headers,
             'Authorization': `bearer ${token}`
         };
-    
+        
         try {
-            const res = await this.http(url, headers);
+            const res = await axios.get(url, { 
+                headers, 
+                httpAgent: new HttpsProxyAgent(proxy), 
+                httpsAgent: new HttpsProxyAgent(proxy), 
+            });
             if (res.status === 200) {
                 const data = res.data;
                 const tasks = data.tasks;
@@ -303,22 +307,56 @@ class XPlusApp {
     
                 for (const task of tasks) {
                     if (task.status === 0) {
+                        const verifyUrl = 'https://wonton.food/api/v1/task/verify';
+                        const payload = {
+                            taskId: task.id,
+                        }
+
+                        const verifyRes = await axios.post(verifyUrl, payload, {
+                            headers,
+                            httpAgent: new HttpsProxyAgent(proxy),
+                            httpsAgent: new HttpsProxyAgent(proxy),
+                            validateStatus: false,
+                        })
+
+                        if (verifyRes.status === 200) {
+                            this.log(`Verify thành công ${task.name}, bắt đầu claim...`, 'blue');
+                            const claimUrl = 'https://wonton.food/api/v1/task/claim';
+                            const claimRes = await axios.post(claimUrl, payload, {
+                                headers,
+                                httpAgent: new HttpsProxyAgent(proxy),
+                                httpsAgent: new HttpsProxyAgent(proxy),
+                                validateStatus: false,
+                            })
+                            if (claimRes.status === 200) {
+                                this.log(`Làm nhiệm vụ: ${task.name}...trạng thái: thành công`, 'green');
+                            } else {
+                                this.log(`Không thể hoàn thành nhiệm vụ: ${task.name}. Mã trạng thái: ${claimRes.status}`, 'red');
+                            }
+
+                            await new Promise((resolve) => setTimeout(resolve, 3000));
+                        }
+                        
+                    } else if (task.status === 1) {
                         const claimUrl = 'https://wonton.food/api/v1/task/claim';
-                        const claimPayload = {
-                            taskId: task.id
-                        };
-    
-                        const claimRes = await this.http(claimUrl, headers, JSON.stringify(claimPayload), 'POST');
+                        const payload = {
+                            taskId: task.id,
+                        }
+
+                        const claimRes = await axios.post(claimUrl, payload, {
+                            headers,
+                            httpAgent: new HttpsProxyAgent(proxy),
+                            httpsAgent: new HttpsProxyAgent(proxy),
+                            validateStatus: false,
+                        })
                         if (claimRes.status === 200) {
                             this.log(`Làm nhiệm vụ: ${task.name}...trạng thái: thành công`, 'green');
                         } else {
                             this.log(`Không thể hoàn thành nhiệm vụ: ${task.name}. Mã trạng thái: ${claimRes.status}`, 'red');
                         }
+                        await new Promise((resolve) => setTimeout(resolve, 3000));
                     }
-                }
-    
-                if (taskProgress >= 3) {
-                    await this.getTaskProgress(token);
+
                 }
             } else {
                 this.log(`Không thể lấy danh sách nhiệm vụ. Mã trạng thái: ${res.status}`, 'red');
@@ -429,7 +467,7 @@ class XPlusApp {
                     this.log('Không có ticket để chơi game!', 'yellow');
                 }
     
-//                await this.processTasks(tokens.accessToken, proxy);
+               await this.processTasks(tokens.accessToken, proxy);
             }
     
             return tokens.refreshToken;
