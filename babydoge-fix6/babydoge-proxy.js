@@ -151,7 +151,7 @@ class Babydoge {
         try {
             const res = await this.http(url, headers, null, proxy);
             if (res && res.data && res.data.available.channels) {
-                const availableChannels = res.data.available.channels.filter(channel => channel.is_available && channel.type !== 'telegram');
+                const availableChannels = res.data.available.channels.filter((channel) => channel.id !== 185421557);
                 return availableChannels;
             } else {
                 this.log('Không có nhiệm vụ nào có sẵn.'.yellow);
@@ -160,6 +160,23 @@ class Babydoge {
         } catch (error) {
             this.log(`Lỗi rồi: ${error.message}`.red);
             return [];
+        }
+    }
+
+    async resolveTask(access_token, channel, proxy) {
+        const url = 'https://backend.babydogepawsbot.com/channels-resolve';
+        const headers = { ...this.headers, 'X-Api-Key': access_token, 'Content-Type': 'application/json' };
+        const data = JSON.stringify({ channel_id: channel.id });
+
+        try {
+            const res = await this.http(url, headers, data, proxy);
+            if (res && res.data) {
+                this.log(`Resolve thành công nhiệm vụ: ${channel.title.yellow}... Chờ 1 tiếng để claim`);
+            } else {
+                this.log(`Lỗi khi resolve nhiệm vụ ${channel.title}`.red);
+            }
+        } catch (error) {
+            this.log(`Lỗi khi resole nhiệm vụ: ${error.message}`.red);
         }
     }
     
@@ -407,7 +424,14 @@ class Babydoge {
     
                     const availableChannels = await this.getTask(access_token, proxy);
                     for (const channel of availableChannels) {
-                        await this.claimTask(access_token, channel, proxy);
+                        if (!channel.is_resolved) {
+                            await this.resolveTask(access_token, channel, proxy);
+                        } else if (!channel.is_reward_taken) {
+                            const today = Date.now();
+                            if (channel.available_at - today === 0) {
+                                await this.claimTask(access_token, channel, proxy);
+                            }
+                        }
                     }
     
                     if (buyCardsDecision) {
