@@ -502,8 +502,8 @@ class Tsubasa {
                     this.log(`Không có nhiệm vụ nào khả dụng.`, 'warning');
                 }
 
-                const totalTaps = await this.tapAndRecover(this.initData, axiosInstance);
-                this.log(`Tổng số lần tap: ${totalTaps}`, 'success');
+                // const totalTaps = await this.tapAndRecover(this.initData, axiosInstance);
+                // this.log(`Tổng số lần tap: ${totalTaps}`, 'success');
 
                 const dailyRewardResult = await this.callDailyRewardAPI(this.initData, axiosInstance);
                 this.log(dailyRewardResult.message, dailyRewardResult.success ? 'success' : 'warning');
@@ -511,7 +511,7 @@ class Tsubasa {
                 const updatedTotalCoins = await this.levelUpCards(this.initData, startResult.total_coins, axiosInstance);
                 this.log(`Đã nâng cấp hết các thẻ đủ điều kiện | Balance: ${updatedTotalCoins}`, 'success');
 
-                await this.upgradeGameStats(this.initData, axiosInstance);
+                // await this.upgradeGameStats(this.initData, axiosInstance);
             } else {
                 this.log(startResult.error, 'error');
             }
