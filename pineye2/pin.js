@@ -23,7 +23,7 @@ class PinEye {
 
     async auth(userinfo) {
         const url = 'https://api.pineye.io/api/v2/Login';
-        const payload = { userinfo };
+        const payload = { userinfo: userinfo };
 
         try {
             const response = await axios.post(url, payload, {
