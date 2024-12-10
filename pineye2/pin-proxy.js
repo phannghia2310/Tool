@@ -49,7 +49,7 @@ class PinEye {
     }
 
     async auth(userinfo, proxy) {
-        const url = 'https://api.pineye.io/api/v2/Login';
+        const url = 'https://api2.pineye.io/api/v2/Login';
         const payload = { userinfo };
 
         try {
@@ -62,7 +62,7 @@ class PinEye {
     }
 
     async getProfile(token, proxy) {
-        const url = 'https://api.pineye.io/api/v2/profile';
+        const url = 'https://api2.pineye.io/api/v3/Profile/GetBalance';
 
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
@@ -74,7 +74,7 @@ class PinEye {
     }
 
     async getBoosters(token, proxy) {
-        const url = 'https://api.pineye.io/api/v1/Booster';
+        const url = 'https://api2.pineye.io/api/v2/Booster';
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
             return response.data;
@@ -85,7 +85,7 @@ class PinEye {
     }
 
     async buyBooster(token, boosterId, proxy) {
-        const url = `https://api.pineye.io/api/v2/profile/BuyBooster?boosterId=${boosterId}`;
+        const url = `https://api2.pineye.io/api/v2/profile/BuyBooster?boosterId=${boosterId}`;
         try {
             const response = await axios.post(url, {}, this.getAxiosConfig(token, proxy));
             return response.data;
@@ -117,7 +117,7 @@ class PinEye {
     }
 
     async tapEnergy(token, energy, proxy) {
-        const url = `https://api.pineye.io/api/v1/Tap?count=${energy}`;
+        const url = `https://api2.pineye.io/api/v1/Tap?count=${energy}`;
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
             if (response.data && !response.data.errors) {
@@ -128,12 +128,81 @@ class PinEye {
         }
     }
 
+    async getFullEnergy(token, proxy) {
+        const url = "https://api2.pineye.io/api/v2/FullEnergy";
+    
+        try {
+          const response = await axios.get(url, this.getAxiosConfig(token, proxy));
+          return response.data.data;
+        } catch (error) {
+          this.log(`Không thể lấy năng lượng: ${error.message}`, "error");
+          return null;
+        }
+      }
+    
+      async setFullEnergy(token, proxy) {
+        const url = "https://api2.pineye.io/api/v2/FullEnergy/SetFullEnergy";
+    
+        try {
+          const response = await axios.post(url, null, this.getAxiosConfig(token, proxy));
+          return response.data.data;
+        } catch (error) {
+          this.log(`Không thể set năng lượng: ${error.message}`, "error");
+          return null;
+        }
+      }
+
+      async manageClaimEnergy(token, energy, proxy) {
+        let totalBalance = 0;
+        if (energy > 0) {
+          await this.tapEnergy(token, energy, proxy);
+    
+          const fullEnergy = await this.getFullEnergy(token, proxy);
+          if (fullEnergy) {
+            if (
+              fullEnergy.nextTodayClaimTime == 0 &&
+              fullEnergy.remainedCount > 0
+            ) {
+              const setFullEnergy = await this.setFullEnergy(token, proxy);
+              if (setFullEnergy && setFullEnergy.isClaimed) {
+                this.log(`Set full năng lượng thành công | Chờ 1h để set lần nữa...`, "success");
+                await this.tapEnergy(token, energy, proxy);
+                const updatedProfile = await this.getProfile(token, proxy);
+                if (updatedProfile && updatedProfile.data) {
+                  totalBalance = updatedProfile.data.profile.totalBalance;
+                }
+              } else {
+                this.log(`Không thể set full năng lượng`, "error");
+                const updatedProfile = await this.getProfile(token, proxy);
+                if (updatedProfile && updatedProfile.data) {
+                  totalBalance = updatedProfile.data.profile.totalBalance;
+                }
+              }
+            } else if (fullEnergy.remainedCount == 0) {
+                this.log("Hôm nay đã hết lượt set full năng lượng!", "warning");
+                const updatedProfile = await this.getProfile(token, proxy);
+                if (updatedProfile && updatedProfile.data) {
+                  totalBalance = updatedProfile.data.profile.totalBalance;
+                }
+            } else {
+                this.log("Chưa đến lần set năng lượng tiếp theo", "warning");
+                const updatedProfile = await this.getProfile(token, proxy);
+                if (updatedProfile && updatedProfile.data) {
+                  totalBalance = updatedProfile.data.profile.totalBalance;
+                }
+            }
+          }
+        }
+    
+        return totalBalance;
+      }
+
     async dailyReward(token, proxy) {
-        const url = 'https://api.pineye.io/api/v1/DailyReward';
+        const url = 'https://api2.pineye.io/api/v1/DailyReward';
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
             if (response.data && response.data.data && response.data.data.canClaim) {
-                const claimUrl = 'https://api.pineye.io/api/v1/DailyReward/claim';
+                const claimUrl = 'https://api2.pineye.io/api/v1/DailyReward/claim';
                 const claimResponse = await axios.post(claimUrl, {}, this.getAxiosConfig(token, proxy));
                 if (claimResponse.data && !claimResponse.data.errors) {
                     this.log(`Điểm danh thành công | Balance: ${claimResponse.data.data.balance}`, 'success');
@@ -207,12 +276,12 @@ class PinEye {
     }
 
     async checkAndBuyLottery(token, proxy) {
-        const url = 'https://api.pineye.io/api/v1/Lottery';
+        const url = 'https://api2.pineye.io/api/v1/Lottery';
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
             const { ticket } = response.data.data;
             if (!ticket.hasBuyed) {
-                const buyTicketUrl = 'https://api.pineye.io/api/v1/Lottery/BuyTicket';
+                const buyTicketUrl = 'https://api2.pineye.io/api/v1/Lottery/BuyTicket';
                 const buyResponse = await axios.post(buyTicketUrl, {}, this.getAxiosConfig(token, proxy));
                 const { code, balance } = buyResponse.data.data;
                 this.log(`Mua thành công vé số ${code} | Balance còn: ${balance}`, 'custom');
@@ -225,7 +294,7 @@ class PinEye {
     }
 
     async getSocialTasks(token, proxy) {
-        const url = 'https://api.pineye.io/api/v1/Social';
+        const url = 'https://api2.pineye.io/api/v1/Social';
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
 
@@ -242,7 +311,7 @@ class PinEye {
     }
 
     async claimSocialTask(token, socialId, proxy) {
-        const url = `https://api.pineye.io/api/v1/SocialFollower/claim?socialId=${socialId}`;
+        const url = `https://api2.pineye.io/api/v1/SocialFollower/claim?socialId=${socialId}`;
         try {
             const response = await axios.post(url, {}, this.getAxiosConfig(token, proxy));
             if (response.data && !response.data.errors) {
@@ -259,7 +328,7 @@ class PinEye {
     }
 
     async getPranaGameMarketplace(token, proxy) {
-        const url = 'https://api.pineye.io/api/v1/PranaGame/Marketplace';
+        const url = 'https://api2.pineye.io/api/v1/PranaGame/Marketplace';
         try {
             const response = await axios.get(url, this.getAxiosConfig(token, proxy));
             return response.data.data;
@@ -270,7 +339,7 @@ class PinEye {
     }
 
     async purchasePranaGameCard(token, cardId, level = 1, proxy) {
-        const url = `https://api.pineye.io/api/v1/PranaGame/Purch?cardId=${cardId}&level=${level}`;
+        const url = `https://api2.pineye.io/api/v1/PranaGame/Purch?cardId=${cardId}&level=${level}`;
         try {
             const response = await axios.post(url, {}, this.getAxiosConfig(token, proxy));
             return response.data;
@@ -316,7 +385,7 @@ class PinEye {
 
         for (const card of allCards) {
             if (balance >= card.cost && card.cost <= maxCost && !card.isCompleted) {
-                const purchaseResult = await this.purchasePranaGameCard(token, card.id, 1, proxy);
+                const purchaseResult = await this.purchasePranaGameCard(token, card.id, card.currentLevel + 1, proxy);
                 if (purchaseResult && purchaseResult.data && purchaseResult.data.isSuccess) {
                     balance = purchaseResult.data.balance;
                     this.log(`Mua thẻ "${card.title}" thành công | Profit: ${card.profit} | Balance còn: ${balance}`, 'success');
@@ -347,8 +416,6 @@ class PinEye {
         const muaPranaCards = await this.askQuestion('Bạn có muốn mua Thẻ Prana không? (y/n): ');
         const hoiPranaCards = muaPranaCards.toLowerCase() === 'y';
 
-        this.log(`Tool được share tại kênh telegram Dân Cày Airdrop!`, 'custom');
-
         while (true) {
             for (let i = 0; i < userData.length; i++) {
                 const userinfo = userData[i];
@@ -377,13 +444,7 @@ class PinEye {
                             this.log(`Earn Per Tap: ${earnPerTap}`, 'success');
                             this.log(`Năng lượng: ${currentEnergy} / ${maxEnergy}`, 'success');
 
-                            if (currentEnergy > 0) {
-                                await this.tapEnergy(token, currentEnergy, proxy);
-                                const updatedProfile = await this.getProfile(token, proxy);
-                                if (updatedProfile && updatedProfile.data) {
-                                    totalBalance = updatedProfile.data.profile.totalBalance;
-                                }
-                            }
+                            totalBalance = await this.manageClaimEnergy(token, currentEnergy, proxy);
 
                             await this.dailyReward(token, proxy);
                             if (hoiturbo) {

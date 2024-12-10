@@ -18,3 +18,5 @@ bless: https://bless.network/dashboard?ref=I4SIMO
 
 openloop:   ol1a3d1d45
             https://chromewebstore.google.com/detail/openloopso-sentry-node-ex/effapmdildnpkiaeghlkicpfflpiambm
+
+meshchain: https://app.meshchain.ai?ref=FE07PMZUHW8A
