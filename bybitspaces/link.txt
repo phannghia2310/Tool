@@ -1,0 +1,7 @@
+https://t.me/fambam_bot/app?startapp=JS5k_2_dIS4u
+
+hướng dẫn: 
+-- lấy query_id bằng bypass
+-- lấy metaverseId: F12 --> Network --> tìm và click me?metaverseId=... --> qua tab payload copy metaverseId
+
+gắn data dạng: metaverseId|query_id
