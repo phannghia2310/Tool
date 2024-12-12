@@ -260,43 +260,43 @@ class Matchain {
             }
         }
     
-        const gameRuleUrl = "https://tgapp-api.matchain.io/api/tgapp/v1/game/rule";
-        let gameRuleRes = await this.http(gameRuleUrl, this.headers, null, proxy);
-        if (gameRuleRes.status !== 200) {
-            this.log('Lỗi khi lấy thông tin trò chơi!', 'error');
-            return false;
-        }
+        // const gameRuleUrl = "https://tgapp-api.matchain.io/api/tgapp/v1/game/rule";
+        // let gameRuleRes = await this.http(gameRuleUrl, this.headers, null, proxy);
+        // if (gameRuleRes.status !== 200) {
+        //     this.log('Lỗi khi lấy thông tin trò chơi!', 'error');
+        //     return false;
+        // }
 
-        let gameCount = gameRuleRes.data.data.game_count;
-        this.log(`Số lượt chơi còn lại: ${gameCount}`, 'info');
+        // let gameCount = gameRuleRes.data.data.game_count;
+        // this.log(`Số lượt chơi còn lại: ${gameCount}`, 'info');
 
-        const gameUrl = "https://tgapp-api.matchain.io/api/tgapp/v1/game/play";
-        while (gameCount > 0) {
-            let res = await this.http(gameUrl, this.headers, null, proxy);
-            if (res.status !== 200) {
-                this.log('Lỗi bắt đầu trò chơi!', 'error');
-                return false;
-            }
+        // const gameUrl = "https://tgapp-api.matchain.io/api/tgapp/v1/game/play";
+        // while (gameCount > 0) {
+        //     let res = await this.http(gameUrl, this.headers, null, proxy);
+        //     if (res.status !== 200) {
+        //         this.log('Lỗi bắt đầu trò chơi!', 'error');
+        //         return false;
+        //     }
 
-            const game_id = res.data.data.game_id;
-            this.log(`Bắt đầu trò chơi ID: ${game_id}`, 'info');
+        //     const game_id = res.data.data.game_id;
+        //     this.log(`Bắt đầu trò chơi ID: ${game_id}`, 'info');
 
-            await this.countdown(30);
-            const point = Math.floor(Math.random() * (150 - 100 + 1)) + 100;
-            const payload = JSON.stringify({ "game_id": game_id, "point": point });
-            const url_claim = "https://tgapp-api.matchain.io/api/tgapp/v1/game/claim";
-            res = await this.http(url_claim, this.headers, payload, proxy);
-            if (res.status !== 200) {
-                this.log('Không thể kết thúc trò chơi!', 'error');
-                continue;
-            }
+        //     await this.countdown(30);
+        //     const point = Math.floor(Math.random() * (150 - 100 + 1)) + 100;
+        //     const payload = JSON.stringify({ "game_id": game_id, "point": point });
+        //     const url_claim = "https://tgapp-api.matchain.io/api/tgapp/v1/game/claim";
+        //     res = await this.http(url_claim, this.headers, payload, proxy);
+        //     if (res.status !== 200) {
+        //         this.log('Không thể kết thúc trò chơi!', 'error');
+        //         continue;
+        //     }
 
-            this.log(`Hoàn thành trò chơi, kiếm được: ${point}`, 'success');
-            gameCount--;
-            this.log(`Số lượt chơi còn lại: ${gameCount}`, 'info');
-        }
+        //     this.log(`Hoàn thành trò chơi, kiếm được: ${point}`, 'success');
+        //     gameCount--;
+        //     this.log(`Số lượt chơi còn lại: ${gameCount}`, 'info');
+        // }
 
-        this.log('Đã hết lượt chơi!', 'warning');
+        // this.log('Đã hết lượt chơi!', 'warning');
 
         return Math.round(next_claim / 1000 - Date.now() / 1000) + 30;
     }
