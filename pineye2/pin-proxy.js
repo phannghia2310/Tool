@@ -128,75 +128,6 @@ class PinEye {
         }
     }
 
-    async getFullEnergy(token, proxy) {
-        const url = "https://api2.pineye.io/api/v2/FullEnergy";
-    
-        try {
-          const response = await axios.get(url, this.getAxiosConfig(token, proxy));
-          return response.data.data;
-        } catch (error) {
-          this.log(`Không thể lấy năng lượng: ${error.message}`, "error");
-          return null;
-        }
-      }
-    
-      async setFullEnergy(token, proxy) {
-        const url = "https://api2.pineye.io/api/v2/FullEnergy/SetFullEnergy";
-    
-        try {
-          const response = await axios.post(url, null, this.getAxiosConfig(token, proxy));
-          return response.data.data;
-        } catch (error) {
-          this.log(`Không thể set năng lượng: ${error.message}`, "error");
-          return null;
-        }
-      }
-
-      async manageClaimEnergy(token, energy, proxy) {
-        let totalBalance = 0;
-        if (energy > 0) {
-          await this.tapEnergy(token, energy, proxy);
-    
-          const fullEnergy = await this.getFullEnergy(token, proxy);
-          if (fullEnergy) {
-            if (
-              fullEnergy.nextTodayClaimTime == 0 &&
-              fullEnergy.remainedCount > 0
-            ) {
-              const setFullEnergy = await this.setFullEnergy(token, proxy);
-              if (setFullEnergy && setFullEnergy.isClaimed) {
-                this.log(`Set full năng lượng thành công | Chờ 1h để set lần nữa...`, "success");
-                await this.tapEnergy(token, energy, proxy);
-                const updatedProfile = await this.getProfile(token, proxy);
-                if (updatedProfile && updatedProfile.data) {
-                  totalBalance = updatedProfile.data.profile.totalBalance;
-                }
-              } else {
-                this.log(`Không thể set full năng lượng`, "error");
-                const updatedProfile = await this.getProfile(token, proxy);
-                if (updatedProfile && updatedProfile.data) {
-                  totalBalance = updatedProfile.data.profile.totalBalance;
-                }
-              }
-            } else if (fullEnergy.remainedCount == 0) {
-                this.log("Hôm nay đã hết lượt set full năng lượng!", "warning");
-                const updatedProfile = await this.getProfile(token, proxy);
-                if (updatedProfile && updatedProfile.data) {
-                  totalBalance = updatedProfile.data.profile.totalBalance;
-                }
-            } else {
-                this.log("Chưa đến lần set năng lượng tiếp theo", "warning");
-                const updatedProfile = await this.getProfile(token, proxy);
-                if (updatedProfile && updatedProfile.data) {
-                  totalBalance = updatedProfile.data.profile.totalBalance;
-                }
-            }
-          }
-        }
-    
-        return totalBalance;
-      }
-
     async dailyReward(token, proxy) {
         const url = 'https://api2.pineye.io/api/v1/DailyReward';
         try {
@@ -385,7 +316,7 @@ class PinEye {
 
         for (const card of allCards) {
             if (balance >= card.cost && card.cost <= maxCost && !card.isCompleted) {
-                const purchaseResult = await this.purchasePranaGameCard(token, card.id, card.currentLevel + 1, proxy);
+                const purchaseResult = await this.purchasePranaGameCard(token, card.id, 1, proxy);
                 if (purchaseResult && purchaseResult.data && purchaseResult.data.isSuccess) {
                     balance = purchaseResult.data.balance;
                     this.log(`Mua thẻ "${card.title}" thành công | Profit: ${card.profit} | Balance còn: ${balance}`, 'success');
@@ -416,6 +347,8 @@ class PinEye {
         const muaPranaCards = await this.askQuestion('Bạn có muốn mua Thẻ Prana không? (y/n): ');
         const hoiPranaCards = muaPranaCards.toLowerCase() === 'y';
 
+        this.log(`Tool được share tại kênh telegram Dân Cày Airdrop!`, 'custom');
+
         while (true) {
             for (let i = 0; i < userData.length; i++) {
                 const userinfo = userData[i];
@@ -444,7 +377,13 @@ class PinEye {
                             this.log(`Earn Per Tap: ${earnPerTap}`, 'success');
                             this.log(`Năng lượng: ${currentEnergy} / ${maxEnergy}`, 'success');
 
-                            totalBalance = await this.manageClaimEnergy(token, currentEnergy, proxy);
+                            if (currentEnergy > 0) {
+                                await this.tapEnergy(token, currentEnergy, proxy);
+                                const updatedProfile = await this.getProfile(token, proxy);
+                                if (updatedProfile && updatedProfile.data) {
+                                    totalBalance = updatedProfile.data.profile.totalBalance;
+                                }
+                            }
 
                             await this.dailyReward(token, proxy);
                             if (hoiturbo) {

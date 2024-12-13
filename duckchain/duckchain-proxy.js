@@ -94,7 +94,7 @@ class DuckChainAPIClient {
     async getUserInfo(authorization, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get('https://preapi.duckchain.io/user/info', {
+            const response = await axiosInstance.get('https://ppp.duckchain.io/user/info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -115,7 +115,7 @@ class DuckChainAPIClient {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
             const encodedDuckName = encodeURIComponent(duckName);
-            const response = await axiosInstance.get(`https://preapi.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
+            const response = await axiosInstance.get(`https://ppp.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': authorization
@@ -135,7 +135,7 @@ class DuckChainAPIClient {
     async getTaskList(authorization, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get('https://preapi.duckchain.io/task/task_list', {
+            const response = await axiosInstance.get('https://ppp.duckchain.io/task/task_list', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -155,7 +155,7 @@ class DuckChainAPIClient {
     async getTaskInfo(authorization, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get('https://preapi.duckchain.io/task/task_info', {
+            const response = await axiosInstance.get('https://ppp.duckchain.io/task/task_info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -175,7 +175,7 @@ class DuckChainAPIClient {
     async performDailyCheckIn(authorization, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get('https://preapi.duckchain.io/task/sign_in', {
+            const response = await axiosInstance.get('https://ppp.duckchain.io/task/sign_in', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -196,7 +196,28 @@ class DuckChainAPIClient {
     async completeTask(authorization, task, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get(`https://preapi.duckchain.io/task/onetime?taskId=${task.taskId}`, {
+            const response = await axiosInstance.get(`https://ppp.duckchain.io/task/onetime?taskId=${task.taskId}`, {
+                headers: {
+                    ...this.headers,
+                    'Authorization': `tma ${authorization}`
+                }
+            });
+    
+            if (response.data.code === 200) {
+                this.log(`Làm nhiệm vụ ${task.content} thành công | Phần thưởng: ${task.integral} DUCK`, 'success');
+                return { success: true, data: response.data.data };
+            } else {
+                return { success: false, error: response.data.message };
+            }
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    async completeTask2(authorization, task, proxyUrl) {
+        try {
+            const axiosInstance = this.createAxiosInstance(proxyUrl);
+            const response = await axiosInstance.get(`https://ppp.duckchain.io/task/partner?taskId=${task.taskId}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -214,8 +235,51 @@ class DuckChainAPIClient {
         }
     }
     
+    async collectDailyEgg(authorization, proxyUrl) {
+        try {
+            const axiosInstance = this.createAxiosInstance(proxyUrl);
+            
+            const checkResponse = await axiosInstance.get('https://ppp.duckchain.io/property/daily/isfinish?taskId=1', {
+                headers: {
+                    ...this.headers,
+                    'Authorization': `tma ${authorization}`
+                }
+            });
+    
+            if (checkResponse.data.code === 200) {
+                if (checkResponse.data.data === 0) {
+
+                    const collectResponse = await axiosInstance.get('https://ppp.duckchain.io/property/daily/finish?taskId=1', {
+                        headers: {
+                            ...this.headers,
+                            'Authorization': `tma ${authorization}`
+                        }
+                    });
+    
+                    if (collectResponse.data.code === 200 && collectResponse.data.data === true) {
+                        this.log('Nhặt trứng thành công', 'success');
+                        return { success: true, data: collectResponse.data.data };
+                    } else {
+                        return { success: false, error: collectResponse.data.message };
+                    }
+                } else {
+                    this.log('Đã nhặt trứng hôm nay rồi', 'warning');
+                    return { success: false, error: 'Already collected today' };
+                }
+            } else {
+                return { success: false, error: checkResponse.data.message };
+            }
+        } catch (error) {
+            this.log(`Lỗi khi nhặt trứng: ${error.message}`, 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
     async processAllTasks(authorization, proxyUrl) {
         try {
+            this.log('Đang kiểm tra và nhặt trứng hàng ngày...', 'info');
+            await this.collectDailyEgg(authorization, proxyUrl);
+
             const taskInfo = await this.getTaskInfo(authorization, proxyUrl);
             if (!taskInfo.success) {
                 this.log(`Không thể lấy thông tin nhiệm vụ: ${taskInfo.error}`, 'error');
@@ -255,7 +319,7 @@ class DuckChainAPIClient {
                 for (const task of partner) {
                     if (!completedPartner.includes(task.taskId)) {
                         this.log(`Đang thực hiện nhiệm vụ đối tác: ${task.content}...`, 'info');
-                        await this.completeTask(authorization, task, proxyUrl);
+                        await this.completeTask2(authorization, task, proxyUrl);
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     }
                 }
@@ -270,7 +334,7 @@ class DuckChainAPIClient {
     async executeQuack(authorization, proxyUrl) {
         try {
             const axiosInstance = this.createAxiosInstance(proxyUrl);
-            const response = await axiosInstance.get('https://preapi.duckchain.io/quack/execute', {
+            const response = await axiosInstance.get('https://ppp.duckchain.io/quack/execute', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -332,15 +396,6 @@ class DuckChainAPIClient {
             .filter(Boolean);
     
         this.log('Tool được chia sẻ tại kênh telegram Dân Cày Airdrop (@dancayairdrop)'.green);
-        
-        const quacktime = await this.askQuestion('Bạn có muốn Quack Times không? (y/n)..Quack Times có thể sẽ bị trừ hết DUCK: ');
-        const hoiquacktime = quacktime.toLowerCase() === 'y';
-        let maxQuackTimes = 0;
-        
-        if (hoiquacktime) {
-            const quackTimesInput = await this.askQuestion('Bạn muốn Quack Times bao nhiêu lần? (Nhấn Enter để quack đến hết): ');
-            maxQuackTimes = quackTimesInput ? parseInt(quackTimesInput) : 0;
-        }
     
         while (true) {
             for (let i = 0; i < data.length; i++) {
@@ -380,9 +435,7 @@ class DuckChainAPIClient {
                         if (setNameResult.success) {
                             this.log(`Đặt tên duck thành công: ${setNameResult.data.duckName}`, 'success');
                             this.log(`Decibels: ${setNameResult.data.decibels}`, 'custom');
-                            if (hoiquacktime && setNameResult.data.decibels > 0) {
-                                await this.processQuacks(authorization, setNameResult.data.decibels, currentProxy, maxQuackTimes);
-                            }
+                            this.log(`Trứng đang có: ${setNameResult.data.eggs}`, 'custom');
                             
                         } else {
                             this.log(`Không thể đặt tên duck: ${setNameResult.error}`, 'error');
@@ -391,10 +444,7 @@ class DuckChainAPIClient {
                         this.log(`Duck name đã được thiết lập: ${userInfo.data.duckName}`, 'info');
                         if (userInfo.data.decibels) {
                             this.log(`Decibels: ${userInfo.data.decibels}`, 'custom');
-    
-                            if (hoiquacktime && userInfo.data.decibels > 0) {
-                                await this.processQuacks(authorization, userInfo.data.decibels, currentProxy, maxQuackTimes);
-                            }
+                            this.log(`Trứng đang có: ${userInfo.data.eggs}`, 'custom');
                         }
                     }
                 

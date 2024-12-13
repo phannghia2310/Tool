@@ -56,16 +56,42 @@ class Clayton {
 
     async fetchApiBaseId() {
         try {
-            const response = await axios.get('https://tonclayton.fun/assets/index-Bg2RwwfZ.js');
-            const jsContent = response.data;
-            
-            // Tìm API base ID từ nội dung file JS
-            const match = jsContent.match(/\$ge\s*=\s*"([^"]+)"/);
-            if (match && match[1]) {
-                this.apiBaseId = match[1];
-                return true;
+            const jsHeaders = {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+                "cache-control": "max-age=0",
+                "sec-ch-ua": '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-user": "?1",
+                "upgrade-insecure-requests": "1",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+            };
+
+            const proxyAgent = new HttpsProxyAgent(this.proxy);
+            const response = await axios({
+                method: 'get',
+                url: 'https://tonclayton.fun/assets/index-cA5h84yP.js',
+                headers: jsHeaders,
+                httpsAgent: proxyAgent
+            });
+//            console.log(response);
+            if (response.status === 200) {
+                const jsContent = response.data;
+                const match = jsContent.match(/sCe="([^"]+)"/);
+                
+                if (match && match[1]) {
+                    this.apiBaseId = match[1];
+                    return true;
+                } else {
+                    throw new Error('Không tìm thấy API Base ID trong file JS');
+                }
             } else {
-                throw new Error('Không tìm thấy API Base ID trong file JS');
+                throw new Error(`Failed to fetch JS file. Status code: ${response.status}`);
             }
         } catch (error) {
             this.log(`Lỗi khi lấy API Base ID: ${error.message}`, 'error');
