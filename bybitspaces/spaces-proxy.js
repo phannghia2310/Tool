@@ -457,7 +457,7 @@ class BybitSpaces {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      await this.countdown(40 * 60);
+      await this.countdown(24 * 60 * 60);
     }
   }
 }

@@ -187,7 +187,7 @@ class TimeFarm {
   async login(initData) {
     const url = "https://tg-bot-tap.laborx.io/api/v1/auth/validate-init/v2";
     const payload = {
-      initData: initData,
+      initData: initData.replace(/[\r\n\t]/g, ""),
       platform: "android",
     };
 

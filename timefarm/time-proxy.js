@@ -10,22 +10,17 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
 class DropsBot {
   constructor() {
     this.headers = {
-      Accept: "*",
+      Accept: "*/*",
       "Accept-Encoding": "gzip, deflate, br, zstd",
-      "Accept-Language":
-        "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+      "Accept-Language": "vi,fr-FR;q=0.9,fr;q=0.8,en-US;q=0.7,en;q=0.6",
       "Content-Type": "application/json",
-      Origin: "https://miniapp.dropstab.com",
-      Referer: "https://miniapp.dropstab.com/",
-      "Sec-Ch-Ua":
-        '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
-      "Sec-Ch-Ua-Mobile": "?1",
-      "Sec-Ch-Ua-Platform": '"Android"',
+      Origin: "https://timefarm.app",
+      Referer: "https://timefarm.app/",
       "Sec-Fetch-Dest": "empty",
       "Sec-Fetch-Mode": "cors",
-      "Sec-Fetch-Site": "same-site",
+      "Sec-Fetch-Site": "cross-site",
       "User-Agent":
-        "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
     };
     this.interval = 3;
     this.proxies = this.loadProxies("proxy.txt");
@@ -205,7 +200,7 @@ class DropsBot {
   async login(initData, proxy) {
     const url = "https://tg-bot-tap.laborx.io/api/v1/auth/validate-init/v2";
     const payload = {
-      initData: initData,
+      initData: initData.replace(/[\r\n\t]/g, ""),
       platform: "android",
     };
 
