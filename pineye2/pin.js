@@ -294,7 +294,7 @@ class PinEye {
     async managePranaGameCards(token, balance) {
         const marketplaceData = await this.getPranaGameMarketplace(token);
         if (!marketplaceData) return;
-
+        
         const configPath = path.join(__dirname, 'config.json');
         let maxCost = 1000000;
         try {
@@ -328,7 +328,7 @@ class PinEye {
 
         for (const card of allCards) {
             if (balance >= card.cost && card.cost <= maxCost && !card.isCompleted) {
-                const purchaseResult = await this.purchasePranaGameCard(token, card.id, 1);
+                const purchaseResult = await this.purchasePranaGameCard(token, card.id, card.currentLevel + 1);
                 if (purchaseResult && purchaseResult.data && purchaseResult.data.isSuccess) {
                     balance = purchaseResult.data.balance;
                     this.log(`Mua thẻ "${card.title}" thành công | Profit: ${card.profit} | Balance còn: ${balance}`, 'success');
