@@ -4,7 +4,7 @@ const axios = require("axios");
 const colors = require("colors");
 const readline = require("readline");
 
-class UltraAPIClient {
+class warlockAPIClient {
   constructor() {
     this.headers = {
       Accept: "application/json, text/plain, */*",
@@ -58,7 +58,7 @@ class UltraAPIClient {
   }
 
   async generateToken(initData) {
-    const url = "https://ultra.dawgsai.xyz/generate-token";
+    const url = "https://warlock.dawgsai.xyz/generate-token";
 
     const userDataEncoded = initData.split("user=")[1].split("&")[0];
     const userData = JSON.parse(decodeURIComponent(userDataEncoded));
@@ -84,7 +84,7 @@ class UltraAPIClient {
   }
 
   async fetchUserData(initData) {
-    const url = "https://ultra.dawgsai.xyz/get-user-data";
+    const url = "https://warlock.dawgsai.xyz/get-user-data";
 
     const userDataEncoded = initData.split("user=")[1].split("&")[0];
     const userData = JSON.parse(decodeURIComponent(userDataEncoded));
@@ -131,7 +131,7 @@ class UltraAPIClient {
   }
 
   async claimEarlyAdopterBonus(userData) {
-    const url = "https://ultra.dawgsai.xyz/update-early-adopter";
+    const url = "https://warlock.dawgsai.xyz/update-early-adopter";
     const payload = {
       pointsNo: 10000,
       user: userData,
@@ -162,7 +162,7 @@ class UltraAPIClient {
   }
 
   async checkDailyRewardStatus(userData) {
-    const url = "https://ultra.dawgsai.xyz/daily-reward-status";
+    const url = "https://warlock.dawgsai.xyz/daily-reward-status";
     const payload = {
       user: userData,
     };
@@ -203,7 +203,7 @@ class UltraAPIClient {
   }
 
   async claimDailyReward(userData) {
-    const url = "https://ultra.dawgsai.xyz/daily-reward-claim";
+    const url = "https://warlock.dawgsai.xyz/daily-reward-claim";
     const payload = {
       user: userData,
     };
@@ -265,9 +265,9 @@ class UltraAPIClient {
 
     try {
       const updateTasksOneUrl =
-        "https://ultra.dawgsai.xyz/update-user-tasks-one";
+        "https://warlock.dawgsai.xyz/update-user-tasks-one";
       const updateTasksFourUrl =
-        "https://ultra.dawgsai.xyz/update-user-tasks-four";
+        "https://warlock.dawgsai.xyz/update-user-tasks-four";
 
       const oneResponse = await retryApiCall(
         async () =>
@@ -297,7 +297,7 @@ class UltraAPIClient {
 
       for (const task of activeSocialTasks) {
         const updateTaskPointsUrl =
-          "https://ultra.dawgsai.xyz/update-task-points";
+          "https://warlock.dawgsai.xyz/update-task-points";
         await retryApiCall(
           async () =>
             await axios.post(
@@ -311,7 +311,7 @@ class UltraAPIClient {
         );
 
         const updateSocialRewardUrl =
-          "https://ultra.dawgsai.xyz/update-social-reward";
+          "https://warlock.dawgsai.xyz/update-social-reward";
         await retryApiCall(
           async () =>
             await axios.post(
@@ -402,7 +402,7 @@ class UltraAPIClient {
   }
 }
 
-const client = new UltraAPIClient();
+const client = new warlockAPIClient();
 client.main().catch((err) => {
   client.log(err.message, "error");
   process.exit(1);

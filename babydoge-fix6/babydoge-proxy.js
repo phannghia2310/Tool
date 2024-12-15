@@ -406,7 +406,7 @@ class Babydoge {
     
             for (const [index, tgData] of data.entries()) {
                 const proxy = proxyList[index];
-                const userData = JSON.parse(decodeURIComponent(tgData.split('&')[1].split('=')[1]));
+                const userData = JSON.parse(decodeURIComponent(tgData.split('user=')[1].split('&')[0]));
                 const firstName = userData.first_name;
                 const ip = await this.checkProxyIP(proxy);
                 console.log(`========== Tài khoản ${index + 1}/${data.length} | ${firstName.green} | IP: ${ip} ==========`);

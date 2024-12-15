@@ -6,7 +6,7 @@ const readline = require('readline');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
-class UltraAPIClient {
+class warlockAPIClient {
     constructor() {
         this.headers = {
             "Accept": "application/json, text/plain, */*",
@@ -54,7 +54,7 @@ class UltraAPIClient {
     }
 
     async generateToken(userData) {
-        const url = "https://ultra.dawgsai.xyz/generate-token";
+        const url = "https://warlock.dawgsai.xyz/generate-token";
         
         try {
             const payload = { user: userData };
@@ -121,7 +121,7 @@ class UltraAPIClient {
     }
 
     async fetchUserData(initData, proxy) {
-        const url = "https://ultra.dawgsai.xyz/get-user-data";
+        const url = "https://warlock.dawgsai.xyz/get-user-data";
         
         try {
             const userDataEncoded = initData.split('user=')[1].split('&')[0];
@@ -165,7 +165,7 @@ class UltraAPIClient {
     }
 
     async claimEarlyAdopterBonus(userData, proxy) {
-        const url = "https://ultra.dawgsai.xyz/update-early-adopter";
+        const url = "https://warlock.dawgsai.xyz/update-early-adopter";
         const payload = {
             pointsNo: 10000,
             user: userData
@@ -190,7 +190,7 @@ class UltraAPIClient {
     }
 
     async checkDailyRewardStatus(userData, proxy) {
-        const url = "https://ultra.dawgsai.xyz/daily-reward-status";
+        const url = "https://warlock.dawgsai.xyz/daily-reward-status";
         const payload = {
             user: userData
         };
@@ -255,7 +255,7 @@ class UltraAPIClient {
     }
 
     async claimDailyReward(userData, proxy) {
-        const url = "https://ultra.dawgsai.xyz/daily-reward-claim";
+        const url = "https://warlock.dawgsai.xyz/daily-reward-claim";
         const payload = {
             user: userData
         };
@@ -306,8 +306,8 @@ class UltraAPIClient {
         try {
             const proxyAgent = new HttpsProxyAgent(proxy);
     
-            const updateTasksOneUrl = "https://ultra.dawgsai.xyz/update-user-tasks-one";
-            const updateTasksFourUrl = "https://ultra.dawgsai.xyz/update-user-tasks-four";
+            const updateTasksOneUrl = "https://warlock.dawgsai.xyz/update-user-tasks-one";
+            const updateTasksFourUrl = "https://warlock.dawgsai.xyz/update-user-tasks-four";
     
             const oneResponse = await retryApiCall(async () => 
                 await axios.post(updateTasksOneUrl, { user: userData }, { 
@@ -333,7 +333,7 @@ class UltraAPIClient {
             );
     
             for (const task of activeSocialTasks) {
-                const updateTaskPointsUrl = "https://ultra.dawgsai.xyz/update-task-points";
+                const updateTaskPointsUrl = "https://warlock.dawgsai.xyz/update-task-points";
                 await retryApiCall(async () => 
                     await axios.post(updateTaskPointsUrl, {
                         pointsNo: task.taskPoints || 1000,
@@ -345,7 +345,7 @@ class UltraAPIClient {
                     })
                 );
     
-                const updateSocialRewardUrl = "https://ultra.dawgsai.xyz/update-social-reward";
+                const updateSocialRewardUrl = "https://warlock.dawgsai.xyz/update-social-reward";
                 await retryApiCall(async () => 
                     await axios.post(
                         updateSocialRewardUrl, 
@@ -479,7 +479,7 @@ class UltraAPIClient {
 }
 
 if (!isMainThread) {
-    const client = new UltraAPIClient();
+    const client = new warlockAPIClient();
     const { initData, proxy } = workerData;
 
     client.processAccount(initData, proxy)
@@ -492,11 +492,11 @@ if (!isMainThread) {
 }
 
 if (isMainThread) {
-    const client = new UltraAPIClient();
+    const client = new warlockAPIClient();
     client.main().catch(err => {
         console.error('Lỗi chính:', err);
         process.exit(1);
     });
 }
 
-module.exports = UltraAPIClient;
+module.exports = warlockAPIClient;
