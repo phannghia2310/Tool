@@ -272,7 +272,7 @@ class Dropee {
     const payload = {
       availableEnergy: availableEnergy,
       duration: Math.floor(Math.random() * 10),
-      count: availableEnergy > 5000 ? 5000 : availableEnergy,
+      count: availableEnergy > 3000 ? 3000 : availableEnergy,
       startTimestamp: Math.floor(Date.now() / 1000),
     };
 
