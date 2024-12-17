@@ -316,7 +316,7 @@ class PinEye {
 
         for (const card of allCards) {
             if (balance >= card.cost && card.cost <= maxCost && !card.isCompleted) {
-                const purchaseResult = await this.purchasePranaGameCard(token, card.id, 1, proxy);
+                const purchaseResult = await this.purchasePranaGameCard(token, card.id, card.currentLevel + 1, proxy);
                 if (purchaseResult && purchaseResult.data && purchaseResult.data.isSuccess) {
                     balance = purchaseResult.data.balance;
                     this.log(`Mua thẻ "${card.title}" thành công | Profit: ${card.profit} | Balance còn: ${balance}`, 'success');
@@ -341,8 +341,8 @@ class PinEye {
         const nangcapturbo = await this.askQuestion('Bạn có muốn nâng cấp boosters không? (y/n): ');
         const hoiturbo = nangcapturbo.toLowerCase() === 'y';
 
-        const muaveso = await this.askQuestion('Bạn có muốn mua lottery không? (y/n): ');
-        const hoiveso = muaveso.toLowerCase() === 'y';
+        // const muaveso = await this.askQuestion('Bạn có muốn mua lottery không? (y/n): ');
+        // const hoiveso = muaveso.toLowerCase() === 'y';
 
         const muaPranaCards = await this.askQuestion('Bạn có muốn mua Thẻ Prana không? (y/n): ');
         const hoiPranaCards = muaPranaCards.toLowerCase() === 'y';
@@ -391,9 +391,9 @@ class PinEye {
                             if (hoiturbo) {
                                 await this.manageBoosters(token, totalBalance, proxy);
                             }
-                            if (hoiveso) {
-                                await this.checkAndBuyLottery(token, proxy);
-                            }
+                            // if (hoiveso) {
+                            //     await this.checkAndBuyLottery(token, proxy);
+                            // }
 
                             if (hoiPranaCards) {
                                 await this.managePranaGameCards(token, totalBalance, proxy);
