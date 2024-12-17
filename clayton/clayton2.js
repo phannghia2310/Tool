@@ -75,7 +75,7 @@ class Clayton {
             const proxyAgent = new HttpsProxyAgent(this.proxy);
             const response = await axios({
                 method: 'get',
-                url: 'https://tonclayton.fun/assets/index-cA5h84yP.js',
+                url: 'https://tonclayton.fun/assets/index-BpUaUgq_.js',
                 headers: jsHeaders,
                 httpsAgent: proxyAgent
             });
