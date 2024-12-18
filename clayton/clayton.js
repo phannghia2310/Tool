@@ -60,12 +60,12 @@ class Clayton {
   async fetchApiBaseId() {
     try {
       const response = await axios.get(
-        "https://tonclayton.fun/assets/index-Cw_PkCi2.js"
+        "https://tonclayton.fun/assets/index-BpUaUgq_.js"
       );
       const jsContent = response.data;
 
       // Tìm API base ID từ nội dung file JS
-      const match = jsContent.match(/Yge\s*=\s*"([^"]+)"/);
+      const match = jsContent.match(/sCe="([^"]+)"/);
       if (match && match[1]) {
         this.apiBaseId = match[1];
         return true;
