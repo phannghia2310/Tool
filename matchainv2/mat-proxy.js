@@ -252,13 +252,13 @@ class Matchain {
         await this.processTasks(this.userid, proxy);
 
     
-        const updatedTaskStatus = await this.checkDailyTaskStatus(proxy);
-        if (updatedTaskStatus && updatedTaskStatus.gameNeedsPurchase) {
-            const ticketResult = await this.buyTicket(token, this.userid, proxy);
-            if (ticketResult) {
-                this.log('Mua thành công Game Ticket', 'success');
-            }
-        }
+        // const updatedTaskStatus = await this.checkDailyTaskStatus(proxy);
+        // if (updatedTaskStatus && updatedTaskStatus.gameNeedsPurchase) {
+        //     const ticketResult = await this.buyTicket(token, this.userid, proxy);
+        //     if (ticketResult) {
+        //         this.log('Mua thành công Game Ticket', 'success');
+        //     }
+        // }
     
         // const gameRuleUrl = "https://tgapp-api.matchain.io/api/tgapp/v1/game/rule";
         // let gameRuleRes = await this.http(gameRuleUrl, this.headers, null, proxy);

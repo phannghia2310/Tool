@@ -11,7 +11,7 @@ class MemesWar {
             "accept": "*/*",
             "accept-encoding": "gzip, deflate, br",
             "accept-language": "en-US,en;q=0.9",
-            "referer": "https://memes-war.memecore.com/",
+            "referer": "https://memes-war.memecore.com/quest",
             "sec-ch-ua": '"Chromium";v="130", "Not?A_Brand";v="99"',
             "sec-ch-ua-mobile": "?1",
             "sec-ch-ua-platform": '"Android"',
@@ -393,7 +393,7 @@ class MemesWar {
             ...this.getAxiosConfig(proxyUrl),
             headers: {
                 ...this.headers,
-                "cookie": `telegramInitData=${telegramInitData}`
+                "Cookie": `telegramInitData=${telegramInitData}`
             }
         };
 

@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run File1",
+            "type": "shell",
+            "command": "node",
+            "args": ["agent4/301-proxy.js"],
+            "group": "build"
+        },
+        {
+            "label": "Run File2",
+            "type": "shell",
+            "command": "node",
+            "args": ["file2.js"],
+            "group": "build"
+        }
+    ]
+}
