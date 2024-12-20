@@ -86,13 +86,15 @@ class DuckClient {
         const queryId = parts.get('query_id');
         const authDate = parts.get('auth_date');
         const hash = parts.get('hash');
+        const signature = parts.get('signature');
 
         const payload = {
             query_id: queryId,
             user: user,
             auth_date: authDate,
             hash: hash,
-            referral_code: "QcmyVQYoPn"
+            signature: signature,
+            referral_code: "B1E4V0ftLS"
         };
 
         try {
