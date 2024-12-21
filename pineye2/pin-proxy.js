@@ -301,15 +301,12 @@ class PinEye {
 
         let allCards = [];
         for (const category of marketplaceData.categories) {
-            for (const collection of category.collections) {
-                for (const card of collection.cards) {
+                for (const card of category.cards) {
                     allCards.push({
                         ...card,
                         categoryId: category.id,
-                        collectionId: collection.id
                     });
                 }
-            }
         }
 
         allCards.sort((a, b) => b.profit - a.profit);
