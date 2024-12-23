@@ -422,16 +422,14 @@ class HumanityClient {
 
         await this.countdown(3);
 
-        if (balance > 10000) {
-          const bridgeResult = await this.bridgeAssets(privateKey, address);
-          if (bridgeResult.success) {
-            this.log(
-              `Bridge asset thành công | Txhash: ${bridgeResult.txHash}`,
-              "success"
-            );
-          } else {
-            this.log(`Bridge asset thất bại: ${bridgeResult.error}`, "error");
-          }
+        const bridgeResult = await this.bridgeAssets(privateKey, address);
+        if (bridgeResult.success) {
+          this.log(
+            `Bridge asset thành công | Txhash: ${bridgeResult.txHash}`,
+            "success"
+          );
+        } else {
+          this.log(`Bridge asset thất bại: ${bridgeResult.error}`, "error");
         }
 
         await new Promise((resolve) => setTimeout(resolve, 3000));
