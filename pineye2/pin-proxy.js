@@ -431,8 +431,9 @@ class PinEye {
 
     if (allPractice) {
       for (let practice of allPractice) {
-        if (practice.nextPracticeTime > 0) {
-          this.log(colors.yellow(`Bạn đã làm ${practice.title} rồi, vui lòng chờ ${practice.nextPracticeTime} giây...`));
+        const curTimestamp = Math.floor(Date.now() / 1000);
+        if (curTimestamp < practice.nextPracticeTime) {
+          this.log(colors.yellow(`Bạn đã làm ${practice.title} rồi, vui lòng chờ ${practice.nextPracticeTime - curTimestamp} giây...`));
         } else {
           this.log(colors.cyan(`Đang thực hiện ${practice.title}`));
           const details = await this.getPracticeDetails(token, practice.id, proxy);
