@@ -159,6 +159,45 @@ class Vertus {
     }
   }
 
+  async upgradeBalance(type, axiosInstance) {
+    const url = "https://api.thevertus.app/users/upgrade";
+    const payload = {
+      upgrade: type,
+    };
+
+    try {
+      const response = await axiosInstance.post(url, payload, {
+        headers: this.headers,
+      });
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async manageUpgrade(balance, upgrades, axiosInstance) {
+    for (let [key, upgrade] of Object.entries(upgrades)) {
+      if (balance < upgrade.priceToLevelUp) {
+        this.log(colors.yellow(`Balance không đủ để nâng cấp ${key}`));
+      } else {
+        const upgradeResult = await this.upgradeBalance(key, axiosInstance);
+        if (upgradeResult) {
+          if (upgradeResult.success) {
+            this.log(
+              colors.green(`Nâng cấp ${key} lên level: ${upgrade.level + 1}`)
+            );
+          } else {
+            this.log(
+              colors.yellow(`${key} đã đạt cấp tối đa: ${upgrade.level}`)
+            );
+          }
+        } else {
+          this.log(colors.red(`Lỗi khi nâng cấp ${key}...`));
+        }
+      }
+    }
+  }
+
   async getTask(axiosInstance) {
     const url = "https://api.thevertus.app/missions/get";
     const payload = {
@@ -257,6 +296,11 @@ class Vertus {
     );
     const hoinhiemvu = nhiemvu.toLowerCase() === "y";
 
+    const nangcap = await this.askQuestion(
+      "Bạn có muốn nâng cấp không? (y/n): "
+    );
+    const hoinangcap = nangcap.toLowerCase() === "y";
+
     while (true) {
       for (let i = 0; i < data.length; i++) {
         const initData = data[i];
@@ -303,6 +347,10 @@ class Vertus {
             this.log(colors.green(`Điểm danh hằng ngày thành công`));
           } else {
             this.log(colors.yellow("Bạn đã điểm danh hôm nay rồi..."));
+          }
+
+          if (hoinangcap) {
+            await this.manageUpgrade(loginResult.balance, loginResult.abilities, axiosInstance);
           }
 
           if (hoinhiemvu) {
