@@ -75,7 +75,7 @@ class Vertus {
     const proxyAgent = new HttpsProxyAgent(proxy);
     return axios.create({
       httpsAgent: proxyAgent,
-      timeout: 30000,
+      timeout: 50000,
       headers: this.headers,
     });
   }
@@ -198,6 +198,76 @@ class Vertus {
     }
   }
 
+  async getUpgradeCards(axiosInstance) {
+    const url = "https://api.thevertus.app/upgrade-cards";
+
+    try {
+      const response = await axiosInstance.get(url, { headers: this.headers });
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async upgradeCard(cardId, axiosInstance) {
+    const url = "https://api.thevertus.app/upgrade-cards/upgrade";
+    const payload = { cardId: cardId };
+
+    try {
+      const response = await axiosInstance.post(url, payload, {
+        headers: this.headers || {},
+      });
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async manageUpgradeCard(balance, axiosInstance) {
+    const getAllCard = await this.getUpgradeCards(axiosInstance);
+    let cards = [
+      ...getAllCard.economyCards,
+      ...getAllCard.militaryCards,
+      ...getAllCard.scienceCards,
+    ];
+
+    cards.sort((a, b) => {
+      const profitA = a.levels[0].cost / a.levels[0].value;
+      const profitB = b.levels[0].cost / b.levels[0].value;
+      return profitB - profitA;
+    });
+
+    for (let card of cards) {
+      if (card.currentLevel == 10) {
+        this.log(colors.cyan(`Card ${card.cardName} đã đạt cấp tối đa`));
+      } else  if (card.isLocked) {
+        this.log(colors.yellow(`Card ${card.cardName} hiện tại đang bị khóa`));
+      } else {
+        if (balance < card.levels[card.currentLevel + 1].cost) {
+          this.log(
+            colors.yellow(`Balance không đủ để nâng cấp card ${card.cardName}`)
+          );
+        } else {
+          const upgrade_card = await this.upgradeCard(card._id, axiosInstance);
+          if (upgrade_card) {
+            if (upgrade_card.isSuccess) {
+              this.log(
+                colors.green(`Nâng cấp card ${card.cardName} thành công`)
+              );
+              balance = upgrade_card.balance;
+            } else {
+              this.log(colors.red(`Nâng cấp card ${card.cardName} thất bại`));
+            }
+          } else {
+            this.log(
+              colors.red(`Lỗi trong quá trình nâng cấp card ${card.cardName}`)
+            );
+          }
+        }
+      }
+    }
+  }
+
   async getTask(axiosInstance) {
     const url = "https://api.thevertus.app/missions/get";
     const payload = {
@@ -301,6 +371,11 @@ class Vertus {
     );
     const hoinangcap = nangcap.toLowerCase() === "y";
 
+    const nangcapcard = await this.askQuestion(
+      "Bạn có muốn nâng cấp card không? (y/n): "
+    );
+    const hoinnangcapcard = nangcapcard.toLowerCase() === "y";
+
     while (true) {
       for (let i = 0; i < data.length; i++) {
         const initData = data[i];
@@ -350,11 +425,19 @@ class Vertus {
           }
 
           if (hoinangcap) {
-            await this.manageUpgrade(loginResult.balance, loginResult.abilities, axiosInstance);
+            await this.manageUpgrade(
+              loginResult.balance,
+              loginResult.abilities,
+              axiosInstance
+            );
           }
 
           if (hoinhiemvu) {
             await this.manageTask(axiosInstance);
+          }
+
+          if (hoinnangcapcard) {
+            await this.manageUpgradeCard(loginResult.balance, axiosInstance);
           }
         } else {
           this.log(colors.red("Có lỗi trong quá trình lấy thông tin user"));
