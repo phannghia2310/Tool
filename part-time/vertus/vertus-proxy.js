@@ -446,7 +446,7 @@ class Vertus {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      await this.countdown(8 * 60 * 60);
+      await this.countdown(24 * 60 * 60);
     }
   }
 }

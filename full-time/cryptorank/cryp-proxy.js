@@ -24,6 +24,10 @@ class CryptoRank {
     this.loadProxies();
   }
 
+  setAuthorization(token) {
+    this.headers["Authorization"] = token;
+  }
+
   loadProxies() {
     try {
       const proxyFile = path.join(__dirname, "proxy.txt");
@@ -97,15 +101,11 @@ class CryptoRank {
     console.log("");
   }
 
-  async account(token, axiosInstance) {
+  async account(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
 
     try {
-      const response = await axiosInstance.get(url, { headers: headers });
+      const response = await axiosInstance.get(url, { headers: this.headers });
       return response.data;
     } catch (err) {
       this.log(`Lỗi tài khoản ${err.message}`, "error");
@@ -113,15 +113,11 @@ class CryptoRank {
     }
   }
 
-  async startFarming(token, axiosInstance) {
+  async startFarming(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account/start-farming";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
 
     try {
-      const response = await axiosInstance.post(url, null, { headers: headers, timeout: 5000 });
+      const response = await axiosInstance.post(url, null, { headers: this.headers });
       return response.data;
     } catch (err) {
       this.log(`Lỗi tài khoản ${err.message}`, "error");
@@ -129,15 +125,13 @@ class CryptoRank {
     }
   }
 
-  async endFarming(token, axiosInstance) {
+  async endFarming(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account/end-farming";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
 
     try {
-      const response = await axiosInstance.post(url, null, { headers: headers });
+      const response = await axiosInstance.post(url, null, {
+        headers: this.headers,
+      });
       return response.data;
     } catch (error) {
       this.log(`Lỗi tài khoản ${error.message}`, "error");
@@ -145,15 +139,11 @@ class CryptoRank {
     }
   }
 
-  async getBuddies(token, axiosInstance) {
+  async getBuddies(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account/buddies";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
 
     try {
-      const response = await axiosInstance.get(url, { headers: headers });
+      const response = await axiosInstance.get(url, { headers: this.headers });
       return response.data;
     } catch (err) {
       this.log(`Lỗi lấy buddies ${err.message}`, "error");
@@ -161,15 +151,14 @@ class CryptoRank {
     }
   }
 
-  async claimBuddies(token, axiosInstance) {
+  async claimBuddies(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account/claim/buddies";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
-
+    
     try {
-      const response = await axiosInstance.post(url, null, { headers: headers });
+      const response = await axiosInstance.post(url, null, {
+        headers: this.headers,
+      });
+  
       return response.data;
     } catch (err) {
       this.log(`Lỗi claim buddies ${err.message}`, "error");
@@ -177,31 +166,27 @@ class CryptoRank {
     }
   }
 
-  async manageBuddies(token, axiosInstance) {
-    const buddies = await this.getBuddies(token, axiosInstance);
+  async manageBuddies(axiosInstance) {
+    const buddies = await this.getBuddies(axiosInstance);
 
     if (buddies.reward == 0) {
       this.log("Không có reward để claim", "warning");
     } else if (buddies.cooldown > 0) {
       this.log(`Cooldown: ${buddies.cooldown} giây`, "warning");
     } else {
-      this.log(`Bắt đầu claim reward ${buddies.rewards}...`, "custom");
-      const claim = await this.claimBuddies(token, axiosInstance);
+      this.log(`Bắt đầu claim reward ${buddies.reward}...`, "custom");
+      const claim = await this.claimBuddies(axiosInstance);
       if (claim) {
         this.log(`Claim thành công | Balance: ${claim.balance}`, "success");
       }
     }
   }
 
-  async getTasks(token, axiosInstance) {
+  async getTasks(axiosInstance) {
     const url = "https://api.cryptorank.io/v0/tma/account/tasks";
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
 
     try {
-      const response = await axiosInstance.get(url, { headers: headers });
+      const response = await axiosInstance.get(url, { headers: this.headers });
       return response.data;
     } catch (err) {
       this.log(`Lỗi lấy task ${err.message}`, "error");
@@ -209,15 +194,11 @@ class CryptoRank {
     }
   }
 
-  async claimTask(token, taskId, axiosInstance) {
+  async claimTask(taskId, axiosInstance) {
     const url = `https://api.cryptorank.io/v0/tma/account/claim/task/${taskId}`;
-    const headers = {
-      ...this.headers,
-      Authorization: `${token}`,
-    };
-    
+
     try {
-      const response = await axiosInstance.post(url, {}, { headers: headers });
+      const response = await axiosInstance.post(url, {}, { headers: this.headers });
       if (response.status == 201) {
         this.log(
           `Claim thành công | Balance: ${response.data.balance}`,
@@ -231,14 +212,14 @@ class CryptoRank {
     }
   }
 
-  async manageTasks(token, axiosInstance) {
-    const tasks = await this.getTasks(token, axiosInstance);
+  async manageTasks(axiosInstance) {
+    const tasks = await this.getTasks(axiosInstance);
 
     for (let task of tasks) {
       if (JSON.stringify(task.isDone) === "false") {
         this.log(`Bắt đầu làm nhiệm vụ ${task.name}...`, "custom");
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        await this.claimTask(token, task.id, axiosInstance);
+        await this.claimTask(task.id, axiosInstance);
       }
     }
   }
@@ -268,36 +249,50 @@ class CryptoRank {
           }
         }
 
-        console.log(`========== ${("Tài khoản " + (i + 1)).green} | ip: ${proxyIP.yellow} ==========`);
+        console.log(
+          `========== ${("Tài khoản " + (i + 1)).green} | ip: ${
+            proxyIP.yellow
+          } ==========`
+        );
 
-        const accountResponse = await this.account(token, axiosInstance);
+        this.setAuthorization(token);
+        const accountResponse = await this.account(axiosInstance);
 
         if (accountResponse) {
           this.log(`Balance: ${accountResponse.balance}`, "success");
           if (accountResponse.farming.state == "END") {
             this.log("Bắt đầu farming...", "custom");
-            await this.startFarming(token, axiosInstance);
+            await this.startFarming(axiosInstance);
           } else {
             const curTime = Date.now();
-            const endTime = accountResponse.farming.timestamp + (6 * 60 * 60 * 1000);
+            const endTime =
+              accountResponse.farming.timestamp + 6 * 60 * 60 * 1000;
 
             if (curTime > endTime) {
               this.log("Bắt đầu claim farming...", "custom");
-              const farmResult = await this.endFarming(token, axiosInstance);
+              const farmResult = await this.endFarming(axiosInstance);
               if (farmResult) {
-                this.log(colors.green(`Claim thành công | Balance: ${farmResult.balance}`));
+                this.log(
+                  colors.green(
+                    `Claim thành công | Balance: ${farmResult.balance}`
+                  )
+                );
                 this.log("Bắt đầu farming...", "custom");
 
                 await new Promise((resolve) => setTimeout(resolve, 3000));
-                await this.startFarming(token, axiosInstance);
+                await this.startFarming(axiosInstance);
               }
             } else {
-              this.log(colors.yellow(`Chưa đến lúc claim chờ ${endTime - curTime} giây...`));
+              this.log(
+                colors.yellow(
+                  `Chưa đến lúc claim chờ ${endTime - curTime} giây...`
+                )
+              );
             }
           }
 
-          await this.manageBuddies(token, axiosInstance);
-          await this.manageTasks(token, axiosInstance);
+          await this.manageBuddies(axiosInstance);
+          await this.manageTasks(axiosInstance);
         }
       }
       await this.countdown(6 * 60 * 60);
