@@ -290,8 +290,8 @@ class UXUY {
 }
 
 if (require.main === module) {
-  const pineye = new UXUY();
-  pineye.main().catch((err) => {
+  const uxuy = new UXUY();
+  uxuy.main().catch((err) => {
     console.error(err.toString().red);
     process.exit(1);
   });
