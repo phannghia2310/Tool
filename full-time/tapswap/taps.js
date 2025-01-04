@@ -213,18 +213,17 @@ class TapSwap {
     }
   }
 
-  async finishMissionItem(missionId, itemIndex) {
+  async finishMissionItem(payload) {
     const url = "https://api.tapswap.club/api/missions/finish_mission_item";
-    const payload = { id: missionId, itemIndex: itemIndex };
 
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
       });
       if (response.status === 201) {
-        this.log(`Hoàn thành index ${itemIndex}`, "success");
+        this.log(`Hoàn thành index ${payload.itemIndex}`, "success");
       } else {
-        this.log(`Hoàn thành index ${itemIndex} thất bại`, "error");
+        this.log(`Hoàn thành index ${payload.itemIndex} thất bại`, "error");
       }
     } catch (err) {
       this.log(err.message, "error");
@@ -263,14 +262,15 @@ class TapSwap {
         this.log("Nhận thưởng nhiệm vụ thất bại", "error");
       }
     } catch (err) {
-      console.log(err);
       this.log(err.message, "error");
     }
   }
 
   async manageTask(playerData) {
     const allTasks = playerData.conf.missions.reverse();
+    let cinemaCount = playerData.account.missions.cinema_cnt;
     const completedTasks = playerData.account.missions.completed;
+    const answers = require('./answer.json');
 
     for (const task of allTasks) {
       if (completedTasks.includes(task.id)) {
@@ -288,19 +288,34 @@ class TapSwap {
           `Thực hiện item ${i + 1}/${task.items.length}: ${item.name}`,
           "custom"
         );
+
+        let payload = { id: task.id, itemIndex: i };
+
         if (item.require_answer) {
           this.log(
-            `Item ${item.name} yêu cầu trả lời, chuyển sang nhiệm vụ tiếp theo...`,
+            `Item ${item.name} yêu cầu trả lời, tìm code từ answer.json...`,
             "warning"
           );
-          skipTask = true;
-          break;
+
+          const answer = answers.find(ans => ans.title === task.title);
+          if (answer && answer.code) {
+            payload = {...payload, user_input: answer.code};
+
+            console.log(payload);
+          } else {
+            this.log(
+              `Không tìm thấy code cho item ${item.name}, chuyển sang nhiệm vụ tiếp theo...`,
+              "error"
+            );
+            skipTask = true;
+            break;
+          }
         }
 
         if (item.wait_duration_s) {
           await this.countdown(item.wait_duration_s);
         }
-        await this.finishMissionItem(task.id, i);
+        await this.finishMissionItem(payload);
         await this.countdown(3);
       }
 
@@ -314,8 +329,16 @@ class TapSwap {
       } else {
         this.log(`Nhiệm vụ ${task.title} thất bại`, "error");
       }
-      await this.countdown(3);
-      await this.claimTask(task.id);
+      
+      if (cinemaCount === 10) {
+        this.log("Cinema count đạt 10, claim task CINEMA...", "custom");
+        await this.claimTask("CINEMA");
+        cinemaCount = 0;
+      } else {
+        await this.countdown(3);
+        await this.claimTask(task.id);
+        cinemaCount += 1;
+      }
     }
   }
 
