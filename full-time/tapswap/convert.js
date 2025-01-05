@@ -12,9 +12,19 @@ function convertTxtToJson(inputFile, outputFile) {
 
         // Xử lý nội dung file
         const lines = data.split('\n').filter(line => line.trim() !== '');
-        const jsonArray = lines.map(line => {
+        const jsonArray = [];
+        let updatedLines = [];
+
+        lines.forEach(line => {
             const [title, code] = line.split(':').map(part => part.trim());
-            return { title, code };
+            
+            // Kiểm tra xem title đã tồn tại trong mảng jsonArray chưa
+            const titleExists = jsonArray.some(item => item.title === title);
+            
+            if (!titleExists) {
+                jsonArray.push({ title, code });
+                updatedLines.push(line); // Lưu lại dòng hợp lệ
+            }
         });
 
         // Ghi dữ liệu JSON vào file
@@ -23,6 +33,15 @@ function convertTxtToJson(inputFile, outputFile) {
                 console.error('Lỗi ghi file JSON:', err);
             } else {
                 console.log(`Đã ghi dữ liệu JSON vào file: ${outputFile}`);
+                
+                // Cập nhật file input với các dòng không bị loại bỏ
+                fs.writeFile(inputFile, updatedLines.join('\n'), 'utf8', err => {
+                    if (err) {
+                        console.error('Lỗi ghi file input:', err);
+                    } else {
+                        console.log(`Đã cập nhật file input: ${inputFile}`);
+                    }
+                });
             }
         });
     });

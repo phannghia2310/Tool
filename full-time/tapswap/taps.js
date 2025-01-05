@@ -219,14 +219,14 @@ class TapSwap {
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
-      });
+      })
       if (response.status === 201) {
         this.log(`Hoàn thành index ${payload.itemIndex}`, "success");
       } else {
         this.log(`Hoàn thành index ${payload.itemIndex} thất bại`, "error");
       }
     } catch (err) {
-      this.log(err.message, "error");
+      this.log(err.response.data && err.response.data.message, "error");
     }
   }
 
@@ -250,7 +250,7 @@ class TapSwap {
 
   async claimTask(task_id) {
     const url = "https://api.tapswap.club/api/player/claim_reward";
-    const payload = { task_id };
+    const payload = { task_id: task_id };
 
     try {
       const response = await axios.post(url, payload, {
@@ -262,7 +262,7 @@ class TapSwap {
         this.log("Nhận thưởng nhiệm vụ thất bại", "error");
       }
     } catch (err) {
-      this.log(err.message, "error");
+      this.log(err.response.data && err.response.data.message, "error");
     }
   }
 
@@ -297,7 +297,7 @@ class TapSwap {
             "warning"
           );
 
-          const answer = answers.find(ans => ans.title === task.title);
+          const answer = answers.find(ans => ans.title.toLowerCase() === task.title.toLowerCase());
           if (answer && answer.code) {
             payload = {...payload, user_input: answer.code};
 
@@ -326,6 +326,9 @@ class TapSwap {
       const finish = await this.finishMission(task.id);
       if (finish) {
         this.log(`Hoàn thành nhiệm vụ ${task.title}`, "success");
+        await this.countdown(3);
+        await this.claimTask(task.id);
+        cinemaCount += 1;
       } else {
         this.log(`Nhiệm vụ ${task.title} thất bại`, "error");
       }
@@ -334,10 +337,6 @@ class TapSwap {
         this.log("Cinema count đạt 10, claim task CINEMA...", "custom");
         await this.claimTask("CINEMA");
         cinemaCount = 0;
-      } else {
-        await this.countdown(3);
-        await this.claimTask(task.id);
-        cinemaCount += 1;
       }
     }
   }
