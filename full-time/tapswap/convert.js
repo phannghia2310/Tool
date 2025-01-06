@@ -18,13 +18,20 @@ function convertTxtToJson(inputFile, outputFile) {
         lines.forEach(line => {
             const [title, code] = line.split(':').map(part => part.trim());
             
-            // Kiểm tra xem title đã tồn tại trong mảng jsonArray chưa
-            const titleExists = jsonArray.some(item => item.title === title);
+            // Tìm đối tượng có title trùng khớp
+            const existingItem = jsonArray.find(item => item.title === title);
             
-            if (!titleExists) {
-                jsonArray.push({ title, code });
-                updatedLines.push(line); // Lưu lại dòng hợp lệ
+            if (existingItem) {
+                // Nếu title đã tồn tại, thêm code vào mảng codes
+                if (!existingItem.codes.includes(code)) {
+                    existingItem.codes.push(code);
+                }
+            } else {
+                // Nếu title chưa tồn tại, tạo đối tượng mới
+                jsonArray.push({ title, codes: [code] });
             }
+
+            updatedLines.push(line); // Lưu lại dòng hợp lệ
         });
 
         // Ghi dữ liệu JSON vào file

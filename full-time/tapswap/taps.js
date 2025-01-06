@@ -219,7 +219,7 @@ class TapSwap {
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
-      })
+      });
       if (response.status === 201) {
         this.log(`Hoàn thành index ${payload.itemIndex}`, "success");
       } else {
@@ -270,7 +270,7 @@ class TapSwap {
     const allTasks = playerData.conf.missions.reverse();
     let cinemaCount = playerData.account.missions.cinema_cnt;
     const completedTasks = playerData.account.missions.completed;
-    const answers = require('./answer.json');
+    const answers = require("./answer.json");
 
     for (const task of allTasks) {
       if (completedTasks.includes(task.id)) {
@@ -297,14 +297,31 @@ class TapSwap {
             "warning"
           );
 
-          const answer = answers.find(ans => ans.title.toLowerCase() === task.title.toLowerCase());
-          if (answer && answer.code) {
-            payload = {...payload, user_input: answer.code};
+          const answer = answers.find(
+            (ans) => ans.title.toLowerCase() === task.title.toLowerCase()
+          );
+          if (answer && Array.isArray(answer.codes)) {
+            let validCodeFound = false;
+            for (const code of answer.codes) {
+              payload = { ...payload, user_input: code };
+              const success = await this.checkAnswer(payload); // Giả định hàm `checkAnswer` kiểm tra xem code có đúng không
+              if (success) {
+                validCodeFound = true;
+                break;
+              }
+            }
 
-            console.log(payload);
+            if (!validCodeFound) {
+              this.log(
+                `Không tìm thấy code hợp lệ cho item ${item.name}, chuyển sang nhiệm vụ tiếp theo...`,
+                "error"
+              );
+              skipTask = true;
+              break;
+            }
           } else {
             this.log(
-              `Không tìm thấy code cho item ${item.name}, chuyển sang nhiệm vụ tiếp theo...`,
+              `Không tìm thấy danh sách code cho item ${item.name}, chuyển sang nhiệm vụ tiếp theo...`,
               "error"
             );
             skipTask = true;
@@ -332,7 +349,7 @@ class TapSwap {
       } else {
         this.log(`Nhiệm vụ ${task.title} thất bại`, "error");
       }
-      
+
       if (cinemaCount === 10) {
         this.log("Cinema count đạt 10, claim task CINEMA...", "custom");
         await this.claimTask("CINEMA");
@@ -381,7 +398,9 @@ class TapSwap {
     };
 
     try {
-      const response = await axios.post(url, payload, { headers: this.headers });
+      const response = await axios.post(url, payload, {
+        headers: this.headers,
+      });
       return response.data;
     } catch (error) {
       return error.response.data.message;
@@ -392,7 +411,7 @@ class TapSwap {
     const i = parseInt(b_id.replace("b_", "")) - 1;
     const levels = playerData.conf.town.buildings[i].levels[2];
 
-    if(!levels) return null;
+    if (!levels) return null;
 
     const data = { ...levels.cost };
     data.rate = Math.floor(levels.rate * 3600);
@@ -409,9 +428,13 @@ class TapSwap {
   }
 
   buildCurrentLevel(b_id, playerData) {
-    const building = playerData.player.town.buildings.find(build => build.id == b_id);
+    const building = playerData.player.town.buildings.find(
+      (build) => build.id == b_id
+    );
     if (building) {
-      return building.ready_at > Date.now() ? building.level - 1 : building.level;
+      return building.ready_at > Date.now()
+        ? building.level - 1
+        : building.level;
     }
     return 0;
   }
@@ -438,7 +461,7 @@ class TapSwap {
     }
 
     this.log("Không có builder miễn phí nào!", "warning");
-  return 0;
+    return 0;
   }
 
   async buildTown(playerData) {
@@ -451,11 +474,11 @@ class TapSwap {
 
     for (const [id, name] of Object.entries(this.b_name)) {
       const cost = this.buildNewLevel(id, playerData);
-  
+
       if (!cost) continue;
-  
+
       const curLvl = this.buildCurrentLevel(id, playerData);
-  
+
       let isConstruct = false;
       for (const data of playerData.player.town.buildings) {
         if (data.id === id && data.ready_at / 1000 > Date.now()) {
@@ -463,15 +486,19 @@ class TapSwap {
           break;
         }
       }
-  
+
       if (isConstruct) continue;
-  
+
       if (curLvl >= 20) continue;
-  
+
       let rName = null;
       let rLvl = null;
-  
-      if (cost.shares <= b_reward && cost.blocks <= b_blocks && cost.videos <= b_videos) {
+
+      if (
+        cost.shares <= b_reward &&
+        cost.blocks <= b_blocks &&
+        cost.videos <= b_videos
+      ) {
         if (cost.r_id) {
           rName = this.b_name[cost.r_id];
           rLvl = cost.r_level;
@@ -483,32 +510,35 @@ class TapSwap {
         }
       }
     }
-  
+
     while (true) {
       const awaitTime = await this.buildersFree(playerData);
       if (awaitTime > 0) {
         this.log(`Chờ thời gian xây dựng ${awaitTime} giây`, "warning");
         return false;
       }
-  
+
       let idBest = "";
       let lvlMin = 100;
-  
+
       if (Object.keys(upgradeList).length === 0) {
         return false;
       }
-  
+
       for (const [id, res] of Object.entries(upgradeList)) {
         if (lvlMin > res[0]) {
           idBest = id;
           lvlMin = res[0];
         }
       }
-  
+
       if (!idBest) break;
-  
-      this.log(`Bắt đầu nâng cấp ${this.b_name[idBest]} lên cấp ${lvlMin + 1}`, "custom");
-  
+
+      this.log(
+        `Bắt đầu nâng cấp ${this.b_name[idBest]} lên cấp ${lvlMin + 1}`,
+        "custom"
+      );
+
       const status = await this.upgradeBuild(idBest);
       if (status.player) {
         playerData = { ...playerData, ...status };
@@ -525,7 +555,10 @@ class TapSwap {
         await this.countdown(5);
         return false;
       } else if (status === "required_building_level_too_low") {
-        this.log(`Yêu cầu về mức độ xây dựng quá thấp. Đang chờ thi công.`, "warning");
+        this.log(
+          `Yêu cầu về mức độ xây dựng quá thấp. Đang chờ thi công.`,
+          "warning"
+        );
         await this.countdown(5);
         return false;
       } else if (status === "not_enough_videos") {
@@ -536,13 +569,15 @@ class TapSwap {
         this.log(`Không đủ tiền tài nguyên. Đang chờ thi công.`, "warning");
         await this.countdown(5);
         return false;
-      
       } else if (status === "Unauthorized") {
         this.log(`Unauthorized. Construction is stop.`, "error");
         await this.countdown(5);
         return false;
       } else if (status === "tg_channel_check_failed") {
-        this.log(`Kiểm tra kênh TG không thành công. Đang chờ thi công.`, "warning");
+        this.log(
+          `Kiểm tra kênh TG không thành công. Đang chờ thi công.`,
+          "warning"
+        );
         await this.countdown(5);
         return false;
       } else {
@@ -551,7 +586,7 @@ class TapSwap {
         break;
       }
     }
-  
+
     return false;
   }
 
