@@ -238,9 +238,9 @@ class Vertus {
     });
 
     for (let card of cards) {
-      if (card.currentLevel == 10) {
+      if (card.currentLevel + 1 == 10) {
         this.log(colors.cyan(`Card ${card.cardName} đã đạt cấp tối đa`));
-      } else  if (card.isLocked) {
+      } else if (card.isLocked) {
         this.log(colors.yellow(`Card ${card.cardName} hiện tại đang bị khóa`));
       } else {
         if (balance < card.levels[card.currentLevel + 1].cost) {
