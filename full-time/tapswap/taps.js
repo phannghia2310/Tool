@@ -221,12 +221,13 @@ class TapSwap {
         headers: this.headers,
       });
       if (response.status === 201) {
-        this.log(`Hoàn thành index ${payload.itemIndex}`, "success");
+        return true;
       } else {
-        this.log(`Hoàn thành index ${payload.itemIndex} thất bại`, "error");
+        return false;
       }
     } catch (err) {
       this.log(err.response.data && err.response.data.message, "error");
+      return false;
     }
   }
 
@@ -244,6 +245,7 @@ class TapSwap {
         return false;
       }
     } catch (err) {
+      console.log(err);
       return false;
     }
   }
@@ -291,6 +293,10 @@ class TapSwap {
 
         let payload = { id: task.id, itemIndex: i };
 
+        if (item.wait_duration_s) {
+          await this.countdown(item.wait_duration_s);
+        }
+
         if (item.require_answer) {
           this.log(
             `Item ${item.name} yêu cầu trả lời, tìm code từ answer.json...`,
@@ -304,11 +310,14 @@ class TapSwap {
             let validCodeFound = false;
             for (const code of answer.codes) {
               payload = { ...payload, user_input: code };
-              const success = await this.checkAnswer(payload); // Giả định hàm `checkAnswer` kiểm tra xem code có đúng không
+              const success = await this.finishMissionItem(payload);
               if (success) {
                 validCodeFound = true;
+                this.log(`Code hợp lệ: ${code}`, "success");
                 break;
-              }
+            } else {
+                this.log(`Code không hợp lệ: ${code}`, "warning");
+            }
             }
 
             if (!validCodeFound) {
@@ -327,12 +336,9 @@ class TapSwap {
             skipTask = true;
             break;
           }
+        } else {
+          await this.finishMissionItem(payload);
         }
-
-        if (item.wait_duration_s) {
-          await this.countdown(item.wait_duration_s);
-        }
-        await this.finishMissionItem(payload);
         await this.countdown(3);
       }
 
@@ -651,9 +657,8 @@ class TapSwap {
                     if (boost.type == "energy") {
                       taps = Math.floor(energy / level);
                     } else {
-                      taps = Math.floor(level * 5 + 5000);
+                      taps = Math.floor(level * 5 + 2500);
                     }
-                    console.log(energy, level, taps);
 
                     await this.countdown(3);
 
@@ -686,6 +691,7 @@ class TapSwap {
                 level = newPlayer.energy_level;
               }
             }
+            await this.countdown(5);
           }
 
           await this.buildTown(this.playerData);
