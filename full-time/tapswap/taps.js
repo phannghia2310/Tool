@@ -701,7 +701,7 @@ class TapSwap {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      await this.countdown(5 * 60);
+      await this.countdown(30 * 60);
     }
   }
 }
