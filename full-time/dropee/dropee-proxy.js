@@ -418,7 +418,7 @@ class Dropee {
     const url =
       "https://dropee.clicker-game-api.tropee.com/api/game/actions/fortune-wheel/spin";
     const payload = {
-      version: 2,
+      version: 3,
     };
 
     try {
