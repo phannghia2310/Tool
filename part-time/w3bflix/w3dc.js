@@ -299,10 +299,10 @@ class W3BFLIX {
                     }
                 }
 
-                if (!this.stopRequested) {
-                    this.log('Bắt đầu chơi 5 game...'.yellow);
-                    await this.startGameForAccount(teleId, data[i], i);
-                }
+                // if (!this.stopRequested) {
+                //     this.log('Bắt đầu chơi 5 game...'.yellow);
+                //     await this.startGameForAccount(teleId, data[i], i);
+                // }
             }
 
             this.log(`${'Tất cả tài khoản đã được xử lý.\nNếu Auto Claim Bot chưa gửi tin nhắn tự động thì bạn nên copy tin nhắn "/watch ...." và gửi tới bot W3BFLIX theo cách thủ công'.yellow}`);
