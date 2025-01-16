@@ -7,7 +7,7 @@ const { parse } = require("querystring");
 const { DateTime } = require("luxon");
 const { HttpsProxyAgent } = require("https-proxy-agent");
 
-class DropsBot {
+class TimeFarm {
   constructor() {
     this.headers = {
       Accept: "*/*",
@@ -489,7 +489,7 @@ class DropsBot {
 
 (async () => {
   try {
-    const app = new DropsBot();
+    const app = new TimeFarm();
     await app.main();
   } catch (error) {
     console.error(error);
