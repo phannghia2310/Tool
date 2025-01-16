@@ -4,6 +4,7 @@ const axios = require("axios");
 const readline = require("readline");
 const colors = require("colors");
 const FormData = require("form-data");
+const { DateTime } = require("luxon");
 const querystring = require("querystring");
 const { HttpsProxyAgent } = require("https-proxy-agent");
 
@@ -115,6 +116,101 @@ class CryptoRank {
     console.log("");
   }
 
+  loadData(file) {
+    const datas = fs
+      .readFileSync(file, "utf8")
+      .split("\n")
+      .filter((line) => line.trim() !== "");
+    if (datas.length <= 0) {
+      console.log(colors.red(`Không tìm thấy dữ liệu`));
+      process.exit();
+    }
+    return datas;
+  }
+
+  save(id, token) {
+    const tokens = JSON.parse(fs.readFileSync("token.json", "utf8"));
+    tokens[id] = token;
+    fs.writeFileSync("token.json", JSON.stringify(tokens, null, 4));
+  }
+
+  get(id) {
+    const tokens = JSON.parse(fs.readFileSync("token.json", "utf8"));
+    return tokens[id] || null;
+  }
+
+  isExpired(token) {
+    const [header, payload, sign] = token.split(".");
+    const decodedPayload = Buffer.from(payload, "base64").toString();
+
+    try {
+      const parsedPayload = JSON.parse(decodedPayload);
+      const now = Math.floor(DateTime.now().toSeconds());
+
+      if (parsedPayload.exp) {
+        const expirationDate = DateTime.fromSeconds(
+          parsedPayload.exp
+        ).toLocal();
+        this.log(
+          colors.cyan(
+            `Token hết hạn vào: ${expirationDate.toFormat(
+              "yyyy-MM-dd HH:mm:ss"
+            )}`
+          )
+        );
+
+        const isExpired = now > parsedPayload.exp;
+        this.log(
+          colors.cyan(
+            `Token đã hết hạn chưa? ${
+              isExpired ? "Đúng rồi bạn cần thay token" : "Chưa..chạy tẹt ga đi"
+            }`
+          )
+        );
+
+        return isExpired;
+      } else {
+        this.log(
+          colors.yellow(`Token vĩnh cửu không đọc được thời gian hết hạn`)
+        );
+        return false;
+      }
+    } catch (error) {
+      this.log(colors.red(`Lỗi rồi: ${error.message}`));
+      return true;
+    }
+  }
+
+  async getOrRefreshToken(id, data, axiosInstance) {
+    let token = this.get(id);
+    if (token) {
+      const expired = this.isExpired(token);
+      if (!expired) {
+        return token;
+      }
+    }
+
+    this.log(
+      colors.yellow(
+        `Token không được tìm thấy hoặc đã hết hạn ${id}. đăng nhập...`
+      )
+    );
+    try {
+      token = await this.jwt(data, axiosInstance);
+      if (token) {
+        this.save(id, token);
+        this.log(colors.green(`Đã lấy token cho tài khoản ${id}`));
+        this.isExpired(token);
+      } else {
+        this.log(colors.red(`Không lấy được token cho tài khoản ${id}`));
+      }
+    } catch (error) {
+      this.log(colors.red(`Đăng nhập thất bại ${id}: ${error.message}`));
+      return null;
+    }
+    return token;
+  }
+
   async jwt(initData, axiosInstance) {
     const url = "https://miniapp.uxuy.one/jwt";
 
@@ -132,9 +228,10 @@ class CryptoRank {
       const response = await axiosInstance.post(url, formData, {
         headers: this.headers,
       });
-      this.setAuthorization(response.data.jwtData);
+      return response.data.jwtData;
     } catch (error) {
       this.log(`Lấy token lỗi: ${error.message}`, "error");
+      return null;
     }
   }
 
@@ -293,6 +390,11 @@ class CryptoRank {
     while (true) {
       for (let i = 0; i < data.length; i++) {
         const initData = data[i];
+        const userData = JSON.parse(
+          decodeURIComponent(initData.split("user=")[1].split("&")[0])
+        );
+        const userName = userData.username;
+        const userId = userData.id;
 
         let proxyIP = "Unknown";
         let axiosInstance = axios.create({ headers: this.headers });
@@ -308,13 +410,15 @@ class CryptoRank {
         }
 
         console.log(
-          `========== ${("Tài khoản " + (i + 1)).green} | ip: ${
+          `========== ${("Tài khoản " + userName).green} | ip: ${
             proxyIP.yellow
           } ==========`
         );
 
-        await this.jwt(initData, axiosInstance);
+        const token = await this.getOrRefreshToken(userId, initData, axiosInstance);
+        if (!token) return null;
 
+        this.setAuthorization(token);
         this.delContentType();
         this.setContentType("application/json");
 

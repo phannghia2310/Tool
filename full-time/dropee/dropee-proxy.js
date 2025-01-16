@@ -564,7 +564,10 @@ class Dropee {
         this.log(colors.green(`Energy: ${info.energy.available}`));
         this.log(colors.green(`Profit: ${info.profit}`));
 
-        if (info.tasks.dailyCheckin.consecutiveDays == 0) {
+        const today = new Date();
+        const lastDayCheckin = new Date(info.tasks.dailyCheckin.lastCheckin);
+
+        if (today > lastDayCheckin) {
           await this.dailyCheckin(axiosInstance);
         } else {
           this.log(colors.yellow(`Bạn đã điểm danh hôm nay rồi...`));
