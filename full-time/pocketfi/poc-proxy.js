@@ -235,6 +235,19 @@ class PocketFi {
     }
   }
 
+  askQuestion(query) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    return new Promise((resolve) =>
+      rl.question(query, (ans) => {
+        rl.close();
+        resolve(ans);
+      })
+    );
+  }
+
   async main() {
     const dataFile = path.join(__dirname, "data.txt");
     const data = fs
@@ -242,6 +255,11 @@ class PocketFi {
       .replace(/\r/g, "")
       .split("\n")
       .filter(Boolean);
+
+    const nhiemvu = await this.askQuestion(
+      "Bạn có muốn làm nhiệm vụ không? (y/n): "
+    );
+    const hoinhiemvu = nhiemvu.toLowerCase() === "y";
 
     while (true) {
       for (let i = 0; i < data.length; i++) {
@@ -280,8 +298,10 @@ class PocketFi {
           this.log("Bắt đầu claim...");
           await this.claimMining(initData, axiosInstance);
 
-          this.log("Bắt đầu làm nhiệm vụ...");
-          await this.manageTask(initData, axiosInstance);
+          if (hoinhiemvu) {
+            this.log("Bắt đầu làm nhiệm vụ...");
+            await this.manageTask(initData, axiosInstance);
+          }
         }
       }
 
