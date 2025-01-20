@@ -170,7 +170,7 @@ class YesCoinBot {
     }
 
     async collectCoin(token, amount, proxy) {
-        const url = 'https://api.yescoin.gold/game/collectCoin';
+        const url = 'https://bi.yescoin.gold/game/collectCoin';
         try {
             const response = await this.makeRequest('post', url, amount, token, proxy);
             if (response.code === 0) {
@@ -184,7 +184,7 @@ class YesCoinBot {
 
     async getAccountInfo(token, proxy) {
         try {
-            const url = 'https://api.yescoin.gold/account/getAccountInfo';
+            const url = 'https://bi.yescoin.gold/account/getAccountInfo';
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
                 return response;
@@ -197,7 +197,7 @@ class YesCoinBot {
 
     async getGameInfo(token, proxy) {
         try {
-            const url = 'https://api.yescoin.gold/game/getGameInfo';
+            const url = 'https://bi.yescoin.gold/game/getGameInfo';
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
                 return response;
@@ -209,7 +209,7 @@ class YesCoinBot {
     }
 
     async useSpecialBox(token, proxy) {
-        const url = 'https://api.yescoin.gold/game/recoverSpecialBox';
+        const url = 'https://bi.yescoin.gold/game/recoverSpecialBox';
         try {
             const response = await this.makeRequest('post', url, {}, token, proxy);
             if (response.code === 0) {
@@ -226,7 +226,7 @@ class YesCoinBot {
 
     async getSpecialBoxInfo(token, proxy) {
         try {
-            const url = 'https://api.yescoin.gold/game/getSpecialBoxInfo';
+            const url = 'https://bi.yescoin.gold/game/getSpecialBoxInfo';
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
                 return response;
@@ -239,7 +239,7 @@ class YesCoinBot {
 
     async getuser(token, proxy) {
         try {
-            const url = 'https://api.yescoin.gold/account/getRankingList?index=1&pageSize=1&rankType=1&userLevel=1';
+            const url = 'https://bi.yescoin.gold/account/getRankingList?index=1&pageSize=1&rankType=1&userLevel=1';
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.data.myUserNick) {
                 return response.data.myUserNick;
@@ -251,7 +251,7 @@ class YesCoinBot {
     }
 
     async collectFromSpecialBox(token, boxType, coinCount, proxy) {
-        const url = 'https://api.yescoin.gold/game/collectSpecialBoxCoin';
+        const url = 'https://bi.yescoin.gold/game/collectSpecialBoxCoin';
         const data = { boxType, coinCount };
         try {
             const response = await this.makeRequest('post', url, data, token, proxy);
@@ -285,7 +285,7 @@ class YesCoinBot {
 
     async getAccountBuildInfo(token, proxy) {
         try {
-            const url = 'https://api.yescoin.gold/build/getAccountBuildInfo';
+            const url = 'https://bi.yescoin.gold/build/getAccountBuildInfo';
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
                 return response;
@@ -297,7 +297,7 @@ class YesCoinBot {
     }
 
     async getSquadInfo(token, proxy) {
-        const url = 'https://api.yescoin.gold/squad/mySquad';
+        const url = 'https://bi.yescoin.gold/squad/mySquad';
         try {
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
@@ -310,7 +310,7 @@ class YesCoinBot {
     }
 
     async joinSquad(token, squadLink, proxy) {
-        const url = 'https://api.yescoin.gold/squad/joinSquad';
+        const url = 'https://bi.yescoin.gold/squad/joinSquad';
         const data = { squadTgLink: squadLink };
         try {
             const response = await this.makeRequest('post', url, data, token, proxy);
@@ -324,7 +324,7 @@ class YesCoinBot {
     }
 
     async recoverCoinPool(token, proxy) {
-        const url = 'https://api.yescoin.gold/game/recoverCoinPool';
+        const url = 'https://bi.yescoin.gold/game/recoverCoinPool';
         try {
             const response = await this.makeRequest('post', url, {}, token, proxy);
             if (response.code === 0) {
@@ -340,7 +340,7 @@ class YesCoinBot {
     }
 
     async getTaskList(token, proxy) {
-        const url = 'https://api.yescoin.gold/task/getCommonTaskList';
+        const url = 'https://bi.yescoin.gold/task/getCommonTaskList';
         try {
             const response = await this.makeRequest('get', url, null, token, proxy);
             if (response.code === 0) {
@@ -356,7 +356,7 @@ class YesCoinBot {
     }
 
     async finishTask(token, taskId, proxy) {
-        const url = 'https://api.yescoin.gold/task/finishTask';
+        const url = 'https://bi.yescoin.gold/task/finishTask';
         try {
             const response = await this.makeRequest('post', url, taskId, token, proxy);
             if (response.code === 0) {
@@ -384,7 +384,7 @@ class YesCoinBot {
     }
 
     async upgradeLevel(token, currentLevel, targetLevel, upgradeType, proxy) {
-        const url = 'https://api.yescoin.gold/build/levelUp';
+        const url = 'https://bi.yescoin.gold/build/levelUp';
         const upgradeTypeName = upgradeType === '1' ? 'Multi Value' : 'Fill Rate';
 
         while (currentLevel < targetLevel) {
@@ -409,13 +409,13 @@ class YesCoinBot {
     }
 
     async handleSwipeBot(token, proxy) {
-        const url = 'https://api.yescoin.gold/build/getAccountBuildInfo';
+        const url = 'https://bi.yescoin.gold/build/getAccountBuildInfo';
         try {
             const accountBuildInfo = await this.makeRequest('get', url, null, token, proxy);
             if (accountBuildInfo.code === 0) {
                 const { swipeBotLevel, openSwipeBot } = accountBuildInfo.data;
                 if (swipeBotLevel < 1) {
-                    const upgradeUrl = 'https://api.yescoin.gold/build/levelUp';
+                    const upgradeUrl = 'https://bi.yescoin.gold/build/levelUp';
                     const upgradeResponse = await this.makeRequest('post', upgradeUrl, 4, token, proxy);
                     if (upgradeResponse.code === 0) {
                         await this.log('Mua SwipeBot thành công', 'success');
@@ -425,7 +425,7 @@ class YesCoinBot {
                 }
     
                 if (swipeBotLevel >= 1 && !openSwipeBot) {
-                    const toggleUrl = 'https://api.yescoin.gold/build/toggleSwipeBotSwitch';
+                    const toggleUrl = 'https://bi.yescoin.gold/build/toggleSwipeBotSwitch';
                     const toggleResponse = await this.makeRequest('post', toggleUrl, true, token, proxy);
                     if (toggleResponse.code === 0) {
                         await this.log('Bật SwipeBot thành công', 'success');
@@ -435,10 +435,10 @@ class YesCoinBot {
                 }
     
                 if (swipeBotLevel >= 1 && openSwipeBot) {
-                    const offlineBonusUrl = 'https://api.yescoin.gold/game/getOfflineYesPacBonusInfo';
+                    const offlineBonusUrl = 'https://bi.yescoin.gold/game/getOfflineYesPacBonusInfo';
                     const offlineBonusInfo = await this.makeRequest('get', offlineBonusUrl, null, token, proxy);
                     if (offlineBonusInfo.code === 0 && offlineBonusInfo.data.length > 0) {
-                        const claimUrl = 'https://api.yescoin.gold/game/claimOfflineBonus';
+                        const claimUrl = 'https://bi.yescoin.gold/game/claimOfflineBonus';
                         const claimData = {
                             id: offlineBonusInfo.data[0].transactionId,
                             createAt: Math.floor(Date.now() / 1000),
