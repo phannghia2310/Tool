@@ -492,8 +492,8 @@ class Tsubasa {
                             this.log(`Lợi nhuận mỗi giây: ${startResult.profit_per_second}`);
                         }
 
-                        if (startResult.tasks && startResult.tasks.length > 0) {
-                            for (const task of startResult.tasks) {
+                        if (startResult.task_info && startResult.task_info.length > 0) {
+                            for (const task of startResult.task_info) {
                                 const executeResult = await this.executeTask(initData, task.id, axiosInstance);
                                 if (executeResult) {
                                     const achievementResult = await this.checkTaskAchievement(initData, task.id, axiosInstance);
