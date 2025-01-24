@@ -9,7 +9,12 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
 
 class MidleAirdrop {
   constructor() {
-    this.headers = {};
+    this.headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      "Origin": "https://app.midle.io",
+      "Referer": "https://app.midle.io/",
+    };
     this.proxyList = [];
     this.loadProxies();
   }
@@ -205,6 +210,7 @@ class MidleAirdrop {
       const response = await axios.get(url, { headers: this.headers });
       return response.data.message;
     } catch (error) {
+      console.log(error);
       return null;
     }
   }
@@ -319,12 +325,30 @@ class MidleAirdrop {
       .split("\n")
       .filter(Boolean);
 
+    if (wallets.length === 0) {
+      this.log("Tệp wallet.txt không chứa dữ liệu hoặc bị thiếu.", "error");
+      process.exit(1);
+    }
+
     const privateFile = path.join(__dirname, "private.txt");
     const privateKeys = fs
       .readFileSync(privateFile, "utf8")
       .replace(/\r/g, "")
       .split("\n")
       .filter(Boolean);
+
+    if (privateKeys.length === 0) {
+      this.log("Tệp private.txt không chứa dữ liệu hoặc bị thiếu.", "error");
+      process.exit(1);
+    }
+
+    if (wallets.length !== privateKeys.length) {
+      this.log(
+        "Số lượng ví trong wallet.txt không khớp với số private keys trong private.txt.",
+        "error"
+      );
+      process.exit(1);
+    }
 
     const proxyGroups = this.distributeWallets(wallets, this.proxyList);
 
