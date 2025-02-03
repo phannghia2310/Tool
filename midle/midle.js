@@ -9,56 +9,8 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
 
 class MidleAirdrop {
   constructor() {
-    this.headers = {
-      "Content-Type": "application/json; charset=utf-8",
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "Origin": "https://app.midle.io",
-      "Referer": "https://app.midle.io/",
-    };
-    this.proxyList = [];
-    this.loadProxies();
-  }
-
-  loadProxies() {
-    try {
-      const proxyFile = path.join(__dirname, "proxy.txt");
-      this.proxyList = fs
-        .readFileSync(proxyFile, "utf8")
-        .replace(/\r/g, "")
-        .split("\n")
-        .filter(Boolean);
-    } catch (error) {
-      this.log("Không thể đọc file proxy.txt", "error");
-      process.exit(1);
-    }
-  }
-
-  async checkProxyIP(proxy) {
-    try {
-      const proxyAgent = new HttpsProxyAgent(proxy);
-      const response = await axios.get("https://api.ipify.org?format=json", {
-        httpsAgent: proxyAgent,
-        timeout: 10000,
-      });
-      if (response.status === 200) {
-        return response.data.ip;
-      } else {
-        throw new Error(
-          `Không thể kiểm tra IP của proxy. Status code: ${response.status}`
-        );
-      }
-    } catch (error) {
-      throw new Error(`Error khi kiểm tra IP của proxy: ${error.message}`);
-    }
-  }
-
-  dancayairdrop(proxy) {
-    const proxyAgent = new HttpsProxyAgent(proxy);
-    return axios.create({
-      httpsAgent: proxyAgent,
-      timeout: 30000,
-      headers: this.headers,
-    });
+    this.headers = {};
+    this.proxy = "http://PVN80711:lHpM2b8z@103.138.109.213:12345";
   }
 
   setApikey(type) {
@@ -203,14 +155,39 @@ class MidleAirdrop {
     return token;
   }
 
+  async checkProxyIP() {
+    const url = "https://api.ipify.org?format=json"; // API để kiểm tra IP công khai
+
+    try {
+      const proxyAgent = new HttpsProxyAgent(this.proxy); // Sử dụng proxy mặc định
+      const response = await axios.get(url, {
+        httpsAgent: proxyAgent,
+        timeout: 10000, // Giới hạn thời gian chờ
+      });
+
+      if (response.status === 200) {
+        const ip = response.data.ip;
+        this.log(`Địa chỉ IP hiện tại thông qua proxy: ${ip}`, "success");
+        return ip;
+      } else {
+        throw new Error(`HTTP status code: ${response.status}`);
+      }
+    } catch (error) {
+      this.log(`Không thể kiểm tra IP qua proxy: ${error.message}`, "error");
+      return null;
+    }
+  }
+
   async getMessage(wallet) {
     const url = `https://backend-v2.midle.io/v1/auth/wallet/metamaskloginmessage?wallet=${wallet}`;
 
     try {
-      const response = await axios.get(url, { headers: this.headers });
+      const response = await axios.get(url, {
+        headers: this.headers,
+        httpsAgent: new HttpsProxyAgent(this.proxy),
+      });
       return response.data.message;
     } catch (error) {
-      console.log(error);
       return null;
     }
   }
@@ -241,6 +218,7 @@ class MidleAirdrop {
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
+        httpsAgent: new HttpsProxyAgent(this.proxy),
       });
       return response.data.accessToken;
     } catch (error) {
@@ -253,7 +231,10 @@ class MidleAirdrop {
       "https://backend-v2.midle.io/v1/customers/by-username/midleairdrop";
 
     try {
-      const response = await axios.get(url, { headers: this.headers });
+      const response = await axios.get(url, {
+        headers: this.headers,
+        httpsAgent: new HttpsProxyAgent(this.proxy),
+      });
       return response.data.id;
     } catch (error) {
       return null;
@@ -264,7 +245,10 @@ class MidleAirdrop {
     const url = `https://backend-v2.midle.io/v1/task/filter?page=1&limit=50&customer=${userId}`;
 
     try {
-      const response = await axios.get(url, { headers: this.headers });
+      const response = await axios.get(url, {
+        headers: this.headers,
+        httpsAgent: new HttpsProxyAgent(this.proxy),
+      });
       return response.data.list;
     } catch (error) {
       return null;
@@ -275,7 +259,10 @@ class MidleAirdrop {
     const url = `https://backend-v2.midle.io/v1/task/verify/${taskId}`;
 
     try {
-      const response = await axios.post(url, null, { headers: this.headers });
+      const response = await axios.post(url, null, {
+        headers: this.headers,
+        httpsAgent: new HttpsProxyAgent(this.proxy),
+      });
       return response.data;
     } catch (error) {
       return null;
@@ -297,15 +284,6 @@ class MidleAirdrop {
         }
       }
     }
-  }
-
-  distributeWallets(wallets, proxies) {
-    const groups = Array.from({ length: proxies.length }, () => []);
-    wallets.forEach((wallet, index) => {
-      const proxyIndex = index % proxies.length;
-      groups[proxyIndex].push(wallet);
-    });
-    return groups;
   }
 
   async main() {
@@ -350,55 +328,31 @@ class MidleAirdrop {
       process.exit(1);
     }
 
-    const proxyGroups = this.distributeWallets(wallets, this.proxyList);
+    const currentIP = await this.checkProxyIP();
+    if (!currentIP) {
+      this.log("Không thể tiếp tục vì proxy không hoạt động.", "error");
+      process.exit(1);
+    }
 
     while (true) {
-      for (let proxyIndex = 0; proxyIndex < proxyGroups.length; proxyIndex++) {
-        const proxy = this.proxyList[proxyIndex];
-        const groupWallets = proxyGroups[proxyIndex];
+      for (let i = 0; i < wallets.length; i++) {
+        const wallet = wallets[i];
+        const key = privateKeys[i];
 
-        let proxyIP = "Unknown";
-        let axiosInstance = axios.create({ headers: this.headers });
+        console.log(`========== ${("Tài khoản " + wallet).green} ==========`);
 
-        // Kiểm tra và gán proxy cho axiosInstance
-        if (proxyIndex < this.proxyList.length) {
-          try {
-            proxyIP = await this.checkProxyIP(this.proxyList[proxyIndex]);
-            axiosInstance = this.dancayairdrop(this.proxyList[proxyIndex]);
-            this.log(`Sử dụng proxy: ${proxy} (IP: ${proxyIP})`, "info");
-          } catch (error) {
-            this.log(`Lỗi proxy ${proxyIndex + 1}: ${error.message}`, "error");
-            continue; // Bỏ qua proxy lỗi và chuyển sang proxy tiếp theo
-          }
+        const token = await this.getOrRefreshToken(i, wallet, key);
+        if (!token) return null;
+        this.setAuthorization(token);
+
+        const userId = await this.getUserId();
+        if (userId) {
+          await this.manageTask(userId);
+        } else {
+          this.log(colors.red("Không lấy được user id"));
         }
 
-        for (let i = 0; i < groupWallets.length; i++) {
-          const wallet = groupWallets[i];
-          const key = privateKeys[wallets.indexOf(wallet)];
-
-          console.log(
-            `========== ${("Tài khoản " + wallet).green} | ip: ${
-              proxyIP.yellow
-            } ==========`
-          );
-
-          const token = await this.getOrRefreshToken(
-            wallets.indexOf(wallet),
-            wallet,
-            key
-          );
-          if (!token) return null;
-          this.setAuthorization(token);
-
-          const userId = await this.getUserId();
-          if (userId) {
-            await this.manageTask(userId);
-          } else {
-            this.log(colors.red("Không lấy được user id"));
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       await this.countdown(3 * 60 * 60);
     }

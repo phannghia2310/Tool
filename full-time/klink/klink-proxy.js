@@ -21,6 +21,7 @@ class Klink {
       "User-Agent":
         "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
     };
+    this.totalPoints = 0;
     this.proxyList = [];
     this.loadProxies();
   }
@@ -299,16 +300,44 @@ class Klink {
   }
 
   async sendTap(userId, axiosInstance) {
+    const maxPointsPerTap = 500; // Điểm mỗi lần tap
+    const maxAllowedPoints = maxPointsPerTap * 10; // Ngưỡng tối đa
+
+    if (this.totalPoints >= maxAllowedPoints) {
+      this.log(colors.yellow("Đạt giới hạn tap, chờ 24 tiếng..."));
+      this.totalPoints = 0; // Reset tổng điểm sau thời gian chờ
+    }
+
     const url = `https://klink-bot.klink.finance/api/v1/user/${userId}/add-point`;
     const sessionKey = await this.generateSessionKey();
     const payload = {
-      points: 500,
-      totalTaps: 499,
+      points: maxPointsPerTap,
+      totalTaps: maxPointsPerTap - 1,
       currentEnergy: 1,
     };
 
     try {
       const response = await axiosInstance.post(url, payload, {
+        headers: {
+          ...this.headers,
+          Sessionkey: sessionKey,
+        },
+      });
+      if (response.data) {
+        this.totalPoints += maxPointsPerTap;
+        this.log(colors.green(`Tap thành công`));
+      }
+    } catch (error) {
+      this.log(colors.yellow("Energy không đủ để thực hiện tap"));
+    }
+  }
+
+  async endMining(userId, axiosInstance) {
+    const url = `https://klink-bot.klink.finance/api/v1/mining/userInfo/${userId}`;
+    const sessionKey = await this.generateSessionKey();
+
+    try {
+      const response = await axiosInstance.get(url, {
         headers: {
           ...this.headers,
           Sessionkey: sessionKey,
@@ -338,6 +367,7 @@ class Klink {
 
       return response.data;
     } catch (error) {
+      console.log(error);
       return null;
     }
   }
@@ -455,18 +485,25 @@ class Klink {
             this.log(colors.yellow(`Bạn đã claim hôm nay rồi`));
           }
 
-          const tap = await this.sendTap(userId, axiosInstance);
-          if (tap) {
-            this.log(colors.green(`Tap thành công`));
-          } else {
-            this.log(colors.yellow("Energy không đủ để thực hiện tap"));
-          }
+          await this.sendTap(userId, axiosInstance);
 
-          const mining = await this.startMining(userId, axiosInstance);
-          if (mining) {
-            this.log(colors.green(`Bắt đầu mining`));
+          const endMining = await this.endMining(userId, axiosInstance);
+          if (endMining) {
+            this.log(colors.green("Fetch mining thành công"));
+            await this.countdown(3);
+            const startMining = await this.startMining(userId, axiosInstance);
+            if (startMining) {
+              this.log(colors.green(`Bắt đầu mining`));
+            } else {
+              this.log(colors.yellow(`Không thể bắt đầu mining`));
+            }
           } else {
-            this.log(colors.yellow(`Không thể bắt đầu mining`));
+            const startMining = await this.startMining(userId, axiosInstance);
+            if (startMining) {
+              this.log(colors.green(`Bắt đầu mining`));
+            } else {
+              this.log(colors.yellow(`Không thể bắt đầu mining`));
+            }
           }
 
           await this.manageTask(userId, axiosInstance);
