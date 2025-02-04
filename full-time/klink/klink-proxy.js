@@ -350,7 +350,7 @@ class Klink {
   }
 
   async startMining(userId, axiosInstance) {
-    const url = `https://klink-bot.klink.finance/api/v1/mining/startMining/${userId}`;
+    const url = `https://klink-bot.klink.finance/api/v1/mining/startMinig/${userId}`;
     const sessionKey = await this.generateSessionKey();
 
     try {
@@ -367,7 +367,6 @@ class Klink {
 
       return response.data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   }
@@ -486,6 +485,7 @@ class Klink {
           }
 
           await this.sendTap(userId, axiosInstance);
+          await this.manageTask(userId, axiosInstance);
 
           const endMining = await this.endMining(userId, axiosInstance);
           if (endMining) {
@@ -493,20 +493,26 @@ class Klink {
             await this.countdown(3);
             const startMining = await this.startMining(userId, axiosInstance);
             if (startMining) {
-              this.log(colors.green(`Bắt đầu mining`));
+              if(startMining.success) {
+                this.log(colors.green(`Bắt đầu mining`));
+              } else {
+                this.log(colors.yellow(`Mining đang thực hiện`));
+              }
             } else {
               this.log(colors.yellow(`Không thể bắt đầu mining`));
             }
           } else {
             const startMining = await this.startMining(userId, axiosInstance);
             if (startMining) {
-              this.log(colors.green(`Bắt đầu mining`));
+              if(startMining.success) {
+                this.log(colors.green(`Bắt đầu mining`));
+              } else {
+                this.log(colors.yellow(`Mining đang thực hiện`));
+              }
             } else {
               this.log(colors.yellow(`Không thể bắt đầu mining`));
             }
           }
-
-          await this.manageTask(userId, axiosInstance);
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
